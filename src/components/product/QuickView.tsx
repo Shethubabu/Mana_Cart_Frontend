@@ -53,11 +53,11 @@ export default function QuickView({
 
             <div className="mt-6 flex items-center gap-3">
               <span className="text-2xl font-black text-slate-950">
-                {formatCurrency(product.price)}
+                {formatCurrency(product.price *50)}
               </span>
               {originalPrice && (
                 <span className="text-base text-slate-400 line-through">
-                  {formatCurrency(originalPrice)}
+                  {formatCurrency(originalPrice *50)}
                 </span>
               )}
             </div>

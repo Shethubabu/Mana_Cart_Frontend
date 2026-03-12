@@ -84,11 +84,11 @@ export default function ProductCard({ product }: { product: Product }) {
 
           <div className="flex items-end gap-2">
             <span className="text-xl font-black text-slate-950">
-              {formatCurrency(product.price)}
+              {formatCurrency(product.price *50)}
             </span>
             {originalPrice && (
               <span className="pb-0.5 text-sm text-slate-400 line-through">
-                {formatCurrency(originalPrice)}
+                {formatCurrency(originalPrice * 50)}
               </span>
             )}
           </div>
