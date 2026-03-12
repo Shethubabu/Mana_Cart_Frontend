@@ -1,53 +1,34 @@
+import { useHome } from "@/hooks/useHome"
 import ProductCard from "./ProductCard"
 
 export default function FeaturedProducts() {
-
-  const products = [
-    {
-      id: 1,
-      name: "Stylish Jacket",
-      price: 89,
-      image:
-        "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-    },
-    {
-      id: 2,
-      name: "Summer Shirt",
-      price: 49,
-      image:
-        "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-    },
-    {
-      id: 3,
-      name: "Sneakers",
-      price: 120,
-      image:
-        "https://images.unsplash.com/photo-1549298916-b41d501d3772",
-    },
-    {
-      id: 4,
-      name: "Leather Bag",
-      price: 150,
-      image:
-        "https://images.unsplash.com/photo-1584917865442-de89df76afd3",
-    },
-  ]
+  const { data, isLoading } = useHome()
 
   return (
-    <section className="py-12 px-6">
-
-      <h2 className="text-3xl font-bold mb-8">
-        Featured Products
-      </h2>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-
+    <section className="mx-auto max-w-7xl px-4 py-10 lg:px-6">
+      <div className="mb-8 flex items-end justify-between">
+        <div>
+          <p className="text-xs font-black text-[#ff3f6c]">
+            Trending
+          </p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+            Featured drops
+          </h2>
+        </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="h-[380px] animate-pulse rounded-[1.75rem] bg-white"
+              />
+            ))
+          : (data?.featuredProducts || []).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+      </div>
     </section>
   )
 }

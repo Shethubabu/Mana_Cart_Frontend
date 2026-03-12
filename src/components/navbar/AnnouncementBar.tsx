@@ -1,10 +1,11 @@
 export default function AnnouncementBar() {
   return (
-    <div className="bg-gray-900 text-white text-center py-2 text-sm">
-      FREE SHIPPING ON ORDERS OVER $99 —
-      <span className="text-orange-500 ml-2 font-semibold">
-        USE CODE MANA20
-      </span>
+    <div className="bg-[#111827] px-4 py-2 text-center text-xs font-medium text-white sm:text-sm">
+      FREE SHIPPING ABOVE RS. 999
+      <span className="mx-3 text-[#ff6b6b]">|</span>
+      NEW SEASON LAUNCH
+      <span className="mx-3 text-[#ff6b6b]">|</span>
+      <span className="font-semibold text-[#ffd166]">USE CODE MANA20</span>
     </div>
   )
 }
