@@ -1,29 +1,19 @@
-import HeroCarousel from "@/components/hero/HeroCarousel"
-import Categories from "@/components/category/Categories"
-import FeaturedProducts from "@/components/product/FeaturedProducts"
-import PromoBanner from "@/components/hero/PromoBanner"
 import Benefits from "@/components/footer/Benefits"
 import Newsletter from "@/components/footer/Newsletter"
-import Footer from "@/components/footer/Footer"
+import Categories from "@/components/category/Categories"
+import HeroCarousel from "@/components/hero/HeroCarousel"
+import PromoBanner from "@/components/hero/PromoBanner"
+import FeaturedProducts from "@/components/product/FeaturedProducts"
 
 export default function Home() {
   return (
-    <div>
-
+    <div className="pb-10">
       <HeroCarousel />
-
       <Categories />
-
       <FeaturedProducts />
-
       <PromoBanner />
-
       <Benefits />
-
       <Newsletter />
-
-      <Footer />
-
     </div>
   )
 }

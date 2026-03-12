@@ -1,40 +1,34 @@
-import ProductCard from "./ProductCard"
 import { useHome } from "@/hooks/useHome"
+import ProductCard from "./ProductCard"
 
 export default function FeaturedProducts() {
-
   const { data, isLoading } = useHome()
 
-  if (isLoading) return <div className="p-10">Loading...</div>
-
   return (
-
-    <section className="py-16 px-8">
-
-      <h2 className="text-3xl font-bold mb-10 text-center">
-        Featured Products
-      </h2>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-
-        {data.featuredProducts.map((product:any)=>(
-          
-          <ProductCard
-            key={product.id}
-            product={{
-              id: product.id,
-              name: product.title,
-              price: product.price,
-              image: product.images?.[0]?.url
-            }}
-          />
-
-        ))}
-
+    <section className="mx-auto max-w-7xl px-4 py-10 lg:px-6">
+      <div className="mb-8 flex items-end justify-between">
+        <div>
+          <p className="text-xs font-black text-[#ff3f6c]">
+            Trending
+          </p>
+          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+            Featured drops
+          </h2>
+        </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="h-[380px] animate-pulse rounded-[1.75rem] bg-white"
+              />
+            ))
+          : (data?.featuredProducts || []).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+      </div>
     </section>
-
   )
-
 }

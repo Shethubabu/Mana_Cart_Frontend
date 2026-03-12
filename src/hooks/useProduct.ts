@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../api/client"
+import type { Product } from "@/lib/types"
 
 export const useProduct = (id: string) => {
 
-  return useQuery({
+  return useQuery<Product>({
 
     queryKey: ["product", id],
 
@@ -14,6 +15,8 @@ export const useProduct = (id: string) => {
       return res.data
 
     },
+
+    enabled: Boolean(id)
 
   })
 

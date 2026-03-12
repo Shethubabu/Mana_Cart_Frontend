@@ -1,122 +1,163 @@
-import { useCartStore } from "@/store/cartStore"
-import { checkout } from "@/api/orders"
+import { useState } from "react"
+import { CheckCircle2, Circle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useCart } from "@/hooks/useCart"
+import { useOrders } from "@/hooks/useOrders"
+import { formatCurrency } from "@/lib/format"
+
+const paymentMethods = [
+  {
+    id: "cod",
+    title: "Cash on Delivery",
+    description: "Pay when your order arrives at your doorstep."
+  },
+  {
+    id: "upi",
+    title: "UPI",
+    description: "Pay using PhonePe, Google Pay, Paytm, or any UPI app."
+  }
+] as const
 
 export default function CheckoutPage() {
-
-  const { items } = useCartStore()
-
   const navigate = useNavigate()
+  const { items } = useCart()
+  const { checkout, isCheckingOut } = useOrders()
+  const [paymentMethod, setPaymentMethod] =
+    useState<(typeof paymentMethods)[number]["id"]>("cod")
+  const [upiId, setUpiId] = useState("")
 
-  const handleCheckout = async ()=>{
-
-    try{
-
-      await checkout(items)
-
-      useCartStore.setState({items:[]})
-
-      alert("Order placed successfully!")
-
-      navigate("/orders")
-
-    }catch(err){
-
-      alert("Checkout failed")
-
-    }
-
-  }
-
-  const total = items.reduce(
-    (sum,item)=>sum + item.price * item.quantity,
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
     0
   )
+  const delivery = subtotal > 999 ? 0 : 99
+  const total = subtotal + delivery
+
+  const placeOrder = async () => {
+    if (paymentMethod === "upi" && !upiId.trim()) {
+      return
+    }
+
+    await checkout()
+    navigate("/orders")
+  }
 
   return (
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1.15fr_0.85fr] lg:px-6">
+      <section className="rounded-[2rem] bg-white p-6 shadow-[0_16px_50px_rgba(15,23,42,0.05)] lg:p-8">
+        <p className="text-xs font-bold text-[#ff3f6c]">Checkout</p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+          Confirm your order
+        </h1>
 
-    <div className="px-8 py-12">
-
-      <h1 className="text-3xl font-bold mb-8">
-        Checkout
-      </h1>
-
-      <div className="grid md:grid-cols-2 gap-10">
-
-        {/* Shipping */}
-
-        <div className="space-y-4">
-
-          <input
-            placeholder="Full Name"
-            className="border w-full p-3 rounded"
-          />
-
-          <input
-            placeholder="Address"
-            className="border w-full p-3 rounded"
-          />
-
-          <input
-            placeholder="City"
-            className="border w-full p-3 rounded"
-          />
-
-          <input
-            placeholder="Zip Code"
-            className="border w-full p-3 rounded"
-          />
-
-        </div>
-
-        {/* Summary */}
-
-        <div className="border p-6 rounded-lg h-fit">
-
-          <h2 className="text-xl font-bold mb-4">
-            Order Summary
-          </h2>
-
-          {items.map((item)=>(
-            
-            <div
-              key={item.id}
-              className="flex justify-between mb-2"
-            >
-
-              <span>{item.name}</span>
-
-              <span>
-                ${item.price * item.quantity}
-              </span>
-
-            </div>
-
-          ))}
-
-          <div className="flex justify-between mt-6 font-bold">
-
-            <span>Total</span>
-
-            <span>${total.toFixed(2)}</span>
-
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <div className="rounded-[1.5rem] border border-slate-200 p-5">
+            <h2 className="text-lg font-bold text-slate-900">Delivery address</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              221 Fashion Street
+              <br />
+              Hyderabad, Telangana
+              <br />
+              India
+            </p>
           </div>
 
-          <button
-            onClick={handleCheckout}
-            className="w-full bg-orange-500 text-white py-3 rounded-lg mt-6"
-          >
+          <div className="rounded-[1.5rem] border border-slate-200 p-5">
+            <h2 className="text-lg font-bold text-slate-900">Payment method</h2>
+            <div className="mt-4 space-y-3">
+              {paymentMethods.map((method) => {
+                const selected = paymentMethod === method.id
 
-            Place Order
+                return (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(method.id)}
+                    className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                      selected
+                        ? "border-[#ff3f6c] bg-[#fff2f5]"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    {selected ? (
+                      <CheckCircle2 className="mt-0.5 text-[#ff3f6c]" size={18} />
+                    ) : (
+                      <Circle className="mt-0.5 text-slate-400" size={18} />
+                    )}
+                    <div>
+                      <p className="font-semibold text-slate-900">{method.title}</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {method.description}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
 
-          </button>
+            {paymentMethod === "upi" && (
+              <div className="mt-4">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  UPI ID
+                </label>
+                <input
+                  value={upiId}
+                  onChange={(event) => setUpiId(event.target.value)}
+                  placeholder="example@upi"
+                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
+      <aside className="h-fit rounded-[2rem] bg-white p-6 shadow-[0_16px_50px_rgba(15,23,42,0.05)] lg:p-8">
+        <h2 className="text-xl font-black tracking-tight text-slate-950">
+          Order total
+        </h2>
+        <div className="mt-6 space-y-4 text-sm text-slate-600">
+          <div className="flex justify-between">
+            <span>Items</span>
+            <span>{items.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Payment</span>
+            <span>
+              {paymentMethod === "cod" ? "Cash on Delivery" : "UPI"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Delivery</span>
+            <span>{delivery === 0 ? "FREE" : formatCurrency(delivery)}</span>
+          </div>
+          <div className="flex justify-between border-t border-slate-200 pt-4 text-base font-bold text-slate-950">
+            <span>Total payable</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
         </div>
 
-      </div>
+        {paymentMethod === "upi" && !upiId.trim() && (
+          <p className="mt-4 text-sm text-[#ff3f6c]">
+            Enter a valid UPI ID to continue.
+          </p>
+        )}
 
+        <button
+          type="button"
+          disabled={
+            !items.length || isCheckingOut || (paymentMethod === "upi" && !upiId.trim())
+          }
+          onClick={placeOrder}
+          className="mt-8 w-full rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isCheckingOut ? "Placing order..." : "Place order"}
+        </button>
+      </aside>
     </div>
-
   )
-
 }

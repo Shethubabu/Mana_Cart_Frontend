@@ -1,20 +1,25 @@
+import { useLocation } from "react-router-dom"
 import AnnouncementBar from "@/components/navbar/AnnouncementBar"
 import Navbar from "@/components/navbar/Navbar"
+import Footer from "@/components/footer/Footer"
 
 export default function MainLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
+  const location = useLocation()
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password"
+
   return (
-    <div>
-
-      <AnnouncementBar/>
-
-      <Navbar/>
-
-      <main>{children}</main>
-
+    <div className="min-h-screen bg-[#fbfbfe] text-slate-950">
+      {!isAuthPage && <AnnouncementBar />}
+      <Navbar />
+      <main className="min-h-[calc(100vh-220px)]">{children}</main>
+      {!isAuthPage && <Footer />}
     </div>
   )
 }
