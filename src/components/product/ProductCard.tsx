@@ -1,38 +1,40 @@
-import { ShoppingCart } from "lucide-react"
+import { Link } from "react-router-dom"
 
-export default function ProductCard({
-  product,
-}: {
-  product: any
-}) {
+export default function ProductCard({ product }: { product:any }) {
+
   return (
-    <div className="border rounded-xl overflow-hidden hover:shadow-lg transition">
 
-      <img
-        src={product.image}
-        className="h-[250px] w-full object-cover"
-      />
+    <Link to={`/product/${product.id}`}>
 
-      <div className="p-4">
+      <div className="bg-white border rounded-lg p-4 hover:shadow-2xl transition group">
 
-        <h3 className="font-semibold text-lg">
+        <img
+          src={product.image}
+          className="h-[220px] w-full object-contain group-hover:scale-105 transition"
+        />
+
+        <h3 className="mt-3 text-sm font-semibold line-clamp-2">
+
           {product.name}
+
         </h3>
 
-        <p className="text-gray-500">
+        <p className="text-lg font-bold mt-2">
+
           ${product.price}
+
         </p>
 
-        <button className="mt-3 flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg">
+        <p className="text-green-600 text-sm">
 
-          <ShoppingCart size={18} />
+          Free Delivery
 
-          Add to Cart
-
-        </button>
+        </p>
 
       </div>
 
-    </div>
+    </Link>
+
   )
+
 }

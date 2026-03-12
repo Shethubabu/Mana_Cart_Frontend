@@ -1,59 +1,61 @@
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
+import { useHome } from "@/hooks/useHome"
+import { useEffect, useState } from "react"
 
 export default function HeroCarousel() {
-  const slides = [
-    {
-      image:
-        "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      title: "Discover Your Style",
-      subtitle: "Up to 40% off new arrivals",
-    },
-    {
-      image:
-        "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-      title: "Summer Collection",
-      subtitle: "Fresh looks for every day",
-    },
-  ]
+
+  const { data } = useHome()
+  const [index, setIndex] = useState(0)
+
+  const slides = data?.featuredProducts?.slice(0,4) || []
+
+  useEffect(() => {
+
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % slides.length)
+    }, 4000)
+
+    return () => clearInterval(timer)
+
+  }, [slides.length])
+
+  if (!slides.length) return null
 
   return (
-    <div className="w-full">
-      <Carousel>
-        <CarouselContent>
 
-          {slides.map((slide, index) => (
-            <CarouselItem key={index}>
+    <div className="relative h-[500px] w-full overflow-hidden">
 
-              <div className="relative h-[450px] w-full">
+      {slides.map((product:any,i:number)=>(
+        
+        <div
+          key={product.id}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            i === index ? "opacity-100" : "opacity-0"
+          }`}
+        >
 
-                <img
-                  src={slide.image}
-                  className="w-full h-full object-cover"
-                />
+          <img
+            src={product.images?.[0]?.url}
+            className="w-full h-full object-cover"
+          />
 
-                <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white">
+          <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white">
 
-                  <h2 className="text-4xl font-bold">
-                    {slide.title}
-                  </h2>
+            <h2 className="text-4xl font-bold">
+              {product.title}
+            </h2>
 
-                  <p className="mt-3 text-lg">
-                    {slide.subtitle}
-                  </p>
+            <p className="mt-3 text-lg">
+              ${product.price}
+            </p>
 
-                  <button className="mt-6 bg-orange-500 px-6 py-2 rounded-lg">
-                    Shop Now
-                  </button>
+          </div>
 
-                </div>
+        </div>
 
-              </div>
+      ))}
 
-            </CarouselItem>
-          ))}
-
-        </CarouselContent>
-      </Carousel>
     </div>
+
   )
+
 }
