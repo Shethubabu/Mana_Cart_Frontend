@@ -5,7 +5,7 @@ export const formatCurrency = (value: number) =>
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0
-  }).format(value)
+  }).format(value * 50)
 
 export const formatCompactDate = (value: string) =>
   new Intl.DateTimeFormat("en-IN", {

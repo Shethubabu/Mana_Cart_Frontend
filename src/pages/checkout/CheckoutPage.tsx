@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [upiId, setUpiId] = useState("")
 
   const subtotal = items.reduce(
-    (sum, item) => sum +( item.product.price*50) * item.quantity,
+    (sum, item) => sum +( item.product.price) * item.quantity,
     0
   )
   const delivery = subtotal > 999 ? 0 : 99
