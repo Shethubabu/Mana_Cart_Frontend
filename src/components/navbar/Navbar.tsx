@@ -5,6 +5,7 @@ import SearchBar from "@/components/navbar/SearchBar"
 import { useCart } from "@/hooks/useCart"
 import { useSearchStore } from "@/store/searchStore"
 import { useSession } from "@/hooks/useSession"
+import { useWishlistStore } from "@/store/wishlistStore"
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -12,6 +13,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const { items } = useCart()
   const { user } = useSession()
+  const wishlistItems = useWishlistStore((state) => state.items)
   const { search, setSearch, openFilter } = useSearchStore()
 
   const cartCount = useMemo(
@@ -83,10 +85,15 @@ export default function Navbar() {
 
           <Link
             to="/wishlist"
-            className="flex flex-col items-center text-xs font-medium text-slate-700 transition hover:text-[#ff3f6c]"
+            className="relative flex flex-col items-center text-xs font-medium text-slate-700 transition hover:text-[#ff3f6c]"
           >
             <Heart size={19} />
             <span>Wishlist</span>
+            {wishlistItems.length > 0 && (
+              <span className="absolute -right-2 -top-2 rounded-full bg-slate-950 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                {wishlistItems.length}
+              </span>
+            )}
           </Link>
 
           <Link
@@ -94,7 +101,7 @@ export default function Navbar() {
             className="relative flex flex-col items-center text-xs font-medium text-slate-700 transition hover:text-[#ff3f6c]"
           >
             <ShoppingBag size={19} />
-            <span>Bag</span>
+            <span>Cart</span>
             {cartCount > 0 && (
               <span className="absolute -right-2 -top-2 rounded-full bg-[#ff3f6c] px-1.5 py-0.5 text-[10px] font-bold text-white">
                 {cartCount}

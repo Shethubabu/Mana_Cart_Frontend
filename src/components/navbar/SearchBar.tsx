@@ -24,7 +24,7 @@ export default function SearchBar({
         <input
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Search for kurtas, sneakers, bags and more"
+          placeholder="Search for beauty groceries and more"
           className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
         />
       </div>

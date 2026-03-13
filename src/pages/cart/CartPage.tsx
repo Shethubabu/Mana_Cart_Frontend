@@ -13,7 +13,7 @@ export default function CartPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
         <h1 className="text-3xl font-black uppercase text-slate-950">
-          Login to view your bag
+          Login to view your cart
         </h1>
         <p className="mt-3 text-sm text-slate-600">
           Your cart syncs to the backend once you sign in.
@@ -29,7 +29,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + (item.product.price*50) * item.quantity,
     0
   )
   const delivery = subtotal > 999 ? 0 : 99
@@ -41,7 +41,7 @@ export default function CartPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#ff3f6c]">
-              Shopping bag
+              Shopping cart
             </p>
             <h1 className="mt-2 text-3xl font-black uppercase text-slate-950">
               {items.length} item{items.length === 1 ? "" : "s"}
@@ -74,7 +74,7 @@ export default function CartPage() {
                     {item.product.category?.name || "Fashion"}
                   </p>
                   <p className="mt-4 text-xl font-black text-slate-950">
-                    {formatCurrency(item.product.price)}
+                    {formatCurrency(item.product.price*50)}
                   </p>
                 </div>
 
@@ -125,8 +125,11 @@ export default function CartPage() {
           <div className="rounded-[1.75rem] bg-[#f7f7fb] p-10 text-center">
             <ShoppingBag className="mx-auto text-slate-400" size={28} />
             <h2 className="mt-4 text-2xl font-black uppercase text-slate-950">
-              Your bag is empty
+              Your cart is empty
             </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Add products to your cart to review them here.
+            </p>
             <Link
               to="/products"
               className="mt-5 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
