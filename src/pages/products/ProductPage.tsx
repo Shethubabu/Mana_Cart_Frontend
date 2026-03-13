@@ -99,11 +99,11 @@ export default function ProductPage() {
 
           <div className="mt-6 flex items-end gap-3">
             <span className="text-3xl font-black text-slate-950">
-              {formatCurrency(data.price *50)}
+              {formatCurrency(data.price)}
             </span>
             {originalPrice && (
               <span className="pb-1 text-lg text-slate-400 line-through">
-                {formatCurrency(originalPrice * 50)}
+                {formatCurrency(originalPrice)}
               </span>
             )}
           </div>

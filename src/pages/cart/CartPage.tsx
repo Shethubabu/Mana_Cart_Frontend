@@ -29,7 +29,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce(
-    (sum, item) => sum + (item.product.price*50) * item.quantity,
+    (sum, item) => sum + (item.product.price) * item.quantity,
     0
   )
   const delivery = subtotal > 999 ? 0 : 99
@@ -74,7 +74,7 @@ export default function CartPage() {
                     {item.product.category?.name || "Fashion"}
                   </p>
                   <p className="mt-4 text-xl font-black text-slate-950">
-                    {formatCurrency(item.product.price*50)}
+                    {formatCurrency(item.product.price)}
                   </p>
                 </div>
 

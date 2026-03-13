@@ -61,14 +61,14 @@ export default function OrdersPage() {
                         </p>
                       </div>
                       <p className="text-sm font-bold text-slate-900">
-                        {formatCurrency((item.price*50) * item.quantity)}
+                        {formatCurrency((item.price) * item.quantity)}
                       </p>
                     </div>
                   ))}
                 </div>
 
                 <div className="mt-5 border-t border-slate-200 pt-5 text-right text-base font-black text-slate-950">
-                  Total: {formatCurrency(order.total*50)}
+                  Total: {formatCurrency(order.total)}
                 </div>
               </article>
             ))}
