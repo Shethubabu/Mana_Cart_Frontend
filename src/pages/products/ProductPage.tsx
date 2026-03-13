@@ -119,7 +119,7 @@ export default function ProductPage() {
               className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
             >
               <ShoppingBag size={16} />
-              Add to bag
+              Add to cart
             </button>
             <button
               type="button"

@@ -103,7 +103,7 @@ export default function ProductCard({ product }: { product: Product }) {
               }
               className="flex-1 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
             >
-              Add to bag
+              Add to cart
             </button>
             <button
               type="button"

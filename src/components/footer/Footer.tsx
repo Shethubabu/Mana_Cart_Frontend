@@ -26,7 +26,7 @@ export default function Footer() {
               Wishlist
             </Link>
             <Link to="/cart" className="block">
-              Shopping bag
+              Shopping cart
             </Link>
           </div>
         </div>
