@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
+import axios from "axios"
 import { useEffect, useMemo, useState } from "react"
+import { useAddresses } from "@/hooks/useAddresses"
 import {
   LogOut,
   MapPin,
@@ -38,7 +40,7 @@ interface ProfileDetails {
 }
 
 interface AddressFormState {
-  id: string
+  id?: number
   name: string
   phone: string
   pincode: string
@@ -51,7 +53,6 @@ interface AddressFormState {
 }
 
 const emptyAddress = (): AddressFormState => ({
-  id: "",
   name: "",
   phone: "",
   pincode: "",
@@ -64,17 +65,25 @@ const emptyAddress = (): AddressFormState => ({
 })
 
 const getProfileStorageKey = (userId: number) => `manacart-profile-${userId}`
-const getAddressStorageKey = (userId: number) => `manacart-addresses-${userId}`
+
 
 export default function ProfilePage() {
   const navigate = useNavigate()
   const { user, logout, isLoggingOut } = useSession()
   const { orders } = useOrders()
   const [profile, setProfile] = useState<ProfileDetails | null>(null)
-  const [addresses, setAddresses] = useState<AddressFormState[]>([])
+  const {
+    addresses,
+    createAddress,
+    isCreating,
+    updateAddress,
+    isUpdating,
+    deleteAddress
+  } = useAddresses()
   const [profileDialogOpen, setProfileDialogOpen] = useState(false)
   const [addressDialogOpen, setAddressDialogOpen] = useState(false)
   const [addressForm, setAddressForm] = useState<AddressFormState>(emptyAddress())
+  const [addressError, setAddressError] = useState("")
   const orderCount = orders.length
   const latestOrderStatus = orders[0]?.status || "View order history"
 
@@ -84,7 +93,7 @@ export default function ProfilePage() {
     }
 
     const storedProfile = window.localStorage.getItem(getProfileStorageKey(user.id))
-    const storedAddresses = window.localStorage.getItem(getAddressStorageKey(user.id))
+    
 
     setProfile(
       storedProfile
@@ -96,9 +105,7 @@ export default function ProfilePage() {
             gender: "Not set"
           }
     )
-    setAddresses(
-      storedAddresses ? (JSON.parse(storedAddresses) as AddressFormState[]) : []
-    )
+    
   }, [user])
 
   const stats = useMemo(
@@ -154,30 +161,64 @@ export default function ProfilePage() {
     setProfileDialogOpen(false)
   }
 
-  const saveAddress = () => {
-    const nextAddresses = addressForm.id
-      ? addresses.map((address) =>
-          address.id === addressForm.id ? addressForm : address
-        )
-      : [...addresses, { ...addressForm, id: crypto.randomUUID() }]
-
-    setAddresses(nextAddresses)
-    window.localStorage.setItem(
-      getAddressStorageKey(user.id),
-      JSON.stringify(nextAddresses)
-    )
-    setAddressDialogOpen(false)
-    setAddressForm(emptyAddress())
+  const addressPayload = {
+    name: addressForm.name.trim(),
+    phone: addressForm.phone.trim(),
+    pincode: addressForm.pincode.trim(),
+    locality: addressForm.locality.trim(),
+    city: addressForm.city.trim(),
+    state: addressForm.state.trim(),
+    addressLine: addressForm.addressLine.trim(),
+    landmark: addressForm.landmark.trim(),
+    type: addressForm.type.trim()
   }
 
-  const deleteAddress = (addressId: string) => {
-    const nextAddresses = addresses.filter((address) => address.id !== addressId)
-    setAddresses(nextAddresses)
-    window.localStorage.setItem(
-      getAddressStorageKey(user.id),
-      JSON.stringify(nextAddresses)
-    )
+  const isSavingAddress = isCreating || isUpdating
+
+  const saveAddress = async (event?: { preventDefault: () => void }) => {
+    event?.preventDefault()
+    setAddressError("")
+
+    if (
+      !addressPayload.name ||
+      !addressPayload.phone ||
+      !addressPayload.pincode ||
+      !addressPayload.locality ||
+      !addressPayload.city ||
+      !addressPayload.state ||
+      !addressPayload.addressLine ||
+      !addressPayload.type
+    ) {
+      setAddressError("Fill in all required address fields before saving.")
+      return
+    }
+
+    try {
+      if (typeof addressForm.id === "number") {
+        await updateAddress({
+          id: addressForm.id,
+          data: addressPayload
+        })
+      } else {
+        await createAddress(addressPayload)
+      }
+
+      setAddressDialogOpen(false)
+      setAddressForm(emptyAddress())
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message
+        : "Address could not be saved. Check the form and try again."
+
+      setAddressError(message)
+    }
   }
+
+  const handleDeleteAddress = async (id: number) => {
+  await deleteAddress(id)
+}
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
@@ -221,7 +262,11 @@ export default function ProfilePage() {
               <button
                 type="button"
                 className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                onClick={() => setAddressDialogOpen(true)}
+                onClick={() => {
+                  setAddressError("")
+                  setAddressForm(emptyAddress())
+                  setAddressDialogOpen(true)
+                }}
               >
                 <span>Add address</span>
                 <Plus className="size-4" />
@@ -358,6 +403,7 @@ export default function ProfilePage() {
                     type="button"
                     className="h-10 rounded-full bg-[#ff3f6c] px-4 text-white hover:bg-[#e73561]"
                     onClick={() => {
+                      setAddressError("")
                       setAddressForm(emptyAddress())
                       setAddressDialogOpen(true)
                     }}
@@ -400,7 +446,11 @@ export default function ProfilePage() {
                             size="sm"
                             className="rounded-full"
                             onClick={() => {
-                              setAddressForm(address)
+                              setAddressError("")
+                              setAddressForm({
+                                ...address,
+                                landmark: address.landmark || ""
+                            })
                               setAddressDialogOpen(true)
                             }}
                           >
@@ -412,7 +462,7 @@ export default function ProfilePage() {
                             variant="ghost"
                             size="sm"
                             className="rounded-full text-[#ff3f6c] hover:bg-[#fff2f5] hover:text-[#ff3f6c]"
-                            onClick={() => deleteAddress(address.id)}
+                            onClick={() => handleDeleteAddress(address.id)}
                           >
                             <Trash2 className="size-4" />
                             Delete
@@ -502,7 +552,17 @@ export default function ProfilePage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={addressDialogOpen} onOpenChange={setAddressDialogOpen}>
+      <Dialog
+        open={addressDialogOpen}
+        onOpenChange={(open) => {
+          setAddressDialogOpen(open)
+
+          if (!open) {
+            setAddressError("")
+            setAddressForm(emptyAddress())
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl rounded-[1.75rem] p-0">
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="text-xl font-black uppercase text-slate-950">
@@ -512,7 +572,8 @@ export default function ProfilePage() {
               Save delivery information for a faster checkout flow.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 px-6 pb-6 md:grid-cols-2">
+          <form onSubmit={saveAddress}>
+            <div className="grid gap-4 px-6 pb-6 md:grid-cols-2">
             <Field label="Full name">
               <Input
                 value={addressForm.name}
@@ -612,16 +673,26 @@ export default function ProfilePage() {
                 }
               />
             </Field>
-          </div>
-          <DialogFooter className="rounded-b-[1.75rem]" showCloseButton>
-            <Button
-              type="button"
-              className="rounded-full bg-[#ff3f6c] px-5 text-white hover:bg-[#e73561]"
-              onClick={saveAddress}
-            >
-              {addressForm.id ? "Update address" : "Save address"}
-            </Button>
-          </DialogFooter>
+            </div>
+            {addressError ? (
+              <p className="px-6 pb-4 text-sm font-medium text-[#ff3f6c]">
+                {addressError}
+              </p>
+            ) : null}
+            <DialogFooter className="rounded-b-[1.75rem]" showCloseButton>
+              <Button
+                type="submit"
+                disabled={isSavingAddress}
+                className="rounded-full bg-[#ff3f6c] px-5 text-white hover:bg-[#e73561] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSavingAddress
+                  ? "Saving..."
+                  : addressForm.id
+                    ? "Update address"
+                    : "Save address"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

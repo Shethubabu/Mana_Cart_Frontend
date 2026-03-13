@@ -82,12 +82,17 @@ export default function CartPage() {
                   <div className="inline-flex items-center rounded-full border border-slate-200 p-1">
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        if (item.quantity <= 1) {
+                          removeItem(item.id)
+                          return
+                        }
+
                         updateCart({
                           cartId: item.id,
-                          quantity: Math.max(1, item.quantity - 1)
+                          quantity: item.quantity - 1
                         })
-                      }
+                      }}
                       className="rounded-full p-2 text-slate-700"
                     >
                       <Minus size={16} />

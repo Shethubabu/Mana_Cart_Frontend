@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Heart, Menu, ShoppingBag, User, X } from "lucide-react"
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
 import SearchBar from "@/components/navbar/SearchBar"
 import { useCart } from "@/hooks/useCart"
+import { useDebouncedValue } from "@/hooks/useDebouncedValue"
 import { useSearchStore } from "@/store/searchStore"
 import { useSession } from "@/hooks/useSession"
 import { useWishlistStore } from "@/store/wishlistStore"
@@ -15,19 +16,32 @@ export default function Navbar() {
   const { user } = useSession()
   const wishlistItems = useWishlistStore((state) => state.items)
   const { search, setSearch, openFilter } = useSearchStore()
+  const [draftSearch, setDraftSearch] = useState(search)
+  const debouncedSearch = useDebouncedValue(draftSearch, 400)
 
   const cartCount = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]
   )
 
-  const submitSearch = (value: string) => {
-    setSearch(value)
+  useEffect(() => {
+    setDraftSearch(search)
+  }, [search])
+
+  useEffect(() => {
+    const normalizedDraft = debouncedSearch.trim()
+    const normalizedSearch = search.trim()
+
+    if (normalizedDraft === normalizedSearch) {
+      return
+    }
+
+    setSearch(debouncedSearch)
 
     if (location.pathname !== "/products") {
       navigate("/products")
     }
-  }
+  }, [debouncedSearch, location.pathname, navigate, search, setSearch])
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
@@ -65,8 +79,8 @@ export default function Navbar() {
 
         <div className="mx-auto hidden max-w-2xl flex-1 md:flex">
           <SearchBar
-            value={search}
-            setValue={submitSearch}
+            value={draftSearch}
+            setValue={setDraftSearch}
             openFilter={() => {
               openFilter()
               navigate("/products")
@@ -113,8 +127,8 @@ export default function Navbar() {
 
       <div className="border-t border-slate-100 px-4 py-3 md:hidden">
         <SearchBar
-          value={search}
-          setValue={submitSearch}
+          value={draftSearch}
+          setValue={setDraftSearch}
           openFilter={() => {
             openFilter()
             navigate("/products")

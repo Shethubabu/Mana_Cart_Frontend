@@ -4,6 +4,7 @@ import type { Product } from "@/lib/types"
 
 export default function WishlistPage() {
   const items = useWishlistStore((state) => state.items)
+  const removeWishlistItem = useWishlistStore((state) => state.removeWishlistItem)
 
   const wishlistProducts: Product[] = items.map((item) => ({
     id: item.id,
@@ -27,7 +28,11 @@ export default function WishlistPage() {
         {wishlistProducts.length ? (
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-4">
             {wishlistProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCartSuccess={() => removeWishlistItem(product.id)}
+              />
             ))}
           </div>
         ) : (

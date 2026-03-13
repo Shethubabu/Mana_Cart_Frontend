@@ -8,7 +8,13 @@ import { useSession } from "@/hooks/useSession"
 import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
 import type { Product } from "@/lib/types"
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  product,
+  onAddToCartSuccess
+}: {
+  product: Product
+  onAddToCartSuccess?: () => void
+}) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const { user } = useSession()
@@ -26,6 +32,13 @@ export default function ProductCard({ product }: { product: Product }) {
     }
 
     await action()
+  }
+
+  const handleAddToCart = async () => {
+    await requireAuthAction(async () => {
+      await addToCart({ productId: product.id, quantity: 1 })
+      onAddToCartSuccess?.()
+    })
   }
 
   return (
@@ -96,11 +109,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() =>
-                requireAuthAction(async () => {
-                  await addToCart({ productId: product.id, quantity: 1 })
-                })
-              }
+              onClick={handleAddToCart}
               className="flex-1 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
             >
               Add to cart
@@ -129,9 +138,7 @@ export default function ProductCard({ product }: { product: Product }) {
             })
           }
           onAddToCart={() =>
-            requireAuthAction(async () => {
-              await addToCart({ productId: product.id, quantity: 1 })
-            })
+            handleAddToCart()
           }
           close={() => setOpen(false)}
         />

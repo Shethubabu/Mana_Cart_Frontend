@@ -57,6 +57,7 @@ export const useSession = () => {
     onSettled: () => {
       clearSession()
       queryClient.removeQueries({ queryKey: ["me"] })
+      queryClient.removeQueries({ queryKey: ["addresses"] })
       queryClient.removeQueries({ queryKey: ["cart"] })
       queryClient.removeQueries({ queryKey: ["orders"] })
     }

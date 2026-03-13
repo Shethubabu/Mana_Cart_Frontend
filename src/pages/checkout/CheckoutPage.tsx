@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { CheckCircle2, Circle } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { CreditCard, CheckCircle2, Circle } from "lucide-react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { useCart } from "@/hooks/useCart"
 import { useOrders } from "@/hooks/useOrders"
 import { formatCurrency } from "@/lib/format"
@@ -15,16 +15,23 @@ const paymentMethods = [
     id: "upi",
     title: "UPI",
     description: "Pay using PhonePe, Google Pay, Paytm, or any UPI app."
+  },
+  {
+    id: "stripe",
+    title: "Stripe",
+    description: "Pay securely with cards, Apple Pay, Google Pay, and more."
   }
 ] as const
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { items } = useCart()
   const { checkout, isCheckingOut } = useOrders()
   const [paymentMethod, setPaymentMethod] =
     useState<(typeof paymentMethods)[number]["id"]>("cod")
   const [upiId, setUpiId] = useState("")
+  const paymentCancelled = searchParams.get("payment") === "cancelled"
 
   const subtotal = items.reduce(
     (sum, item) => sum +( item.product.price) * item.quantity,
@@ -38,7 +45,29 @@ export default function CheckoutPage() {
       return
     }
 
-    await checkout()
+    const origin = window.location.origin
+    const response = await checkout({
+      paymentMethod,
+      upiId: paymentMethod === "upi" ? upiId.trim() : undefined,
+      successUrl:
+        paymentMethod === "stripe"
+          ? `${origin}/orders?payment=success`
+          : undefined,
+      cancelUrl:
+        paymentMethod === "stripe"
+          ? `${origin}/checkout?payment=cancelled`
+          : undefined
+    })
+
+    if (paymentMethod === "stripe") {
+      if (!response?.checkoutUrl) {
+        throw new Error("Stripe checkout session URL was not returned.")
+      }
+
+      window.location.assign(response.checkoutUrl)
+      return
+    }
+
     navigate("/orders")
   }
 
@@ -49,6 +78,12 @@ export default function CheckoutPage() {
         <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
           Confirm your order
         </h1>
+
+        {paymentCancelled && (
+          <div className="mt-6 rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Stripe checkout was cancelled. Your cart is still intact.
+          </div>
+        )}
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <div className="rounded-[1.5rem] border border-slate-200 p-5">
@@ -108,6 +143,19 @@ export default function CheckoutPage() {
                 />
               </div>
             )}
+
+            {paymentMethod === "stripe" && (
+              <div className="mt-4 rounded-[1.25rem] bg-slate-50 p-4 text-sm text-slate-600">
+                <div className="flex items-center gap-2 font-semibold text-slate-900">
+                  <CreditCard size={16} />
+                  Hosted by Stripe
+                </div>
+                <p className="mt-2 leading-6">
+                  You will be redirected to Stripe Checkout to complete payment
+                  securely and then returned to ManaCart.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -124,7 +172,11 @@ export default function CheckoutPage() {
           <div className="flex justify-between">
             <span>Payment</span>
             <span>
-              {paymentMethod === "cod" ? "Cash on Delivery" : "UPI"}
+              {paymentMethod === "cod"
+                ? "Cash on Delivery"
+                : paymentMethod === "upi"
+                  ? "UPI"
+                  : "Stripe"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -155,7 +207,13 @@ export default function CheckoutPage() {
           onClick={placeOrder}
           className="mt-8 w-full rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isCheckingOut ? "Placing order..." : "Place order"}
+          {isCheckingOut
+            ? paymentMethod === "stripe"
+              ? "Redirecting to Stripe..."
+              : "Placing order..."
+            : paymentMethod === "stripe"
+              ? "Pay with Stripe"
+              : "Place order"}
         </button>
       </aside>
     </div>

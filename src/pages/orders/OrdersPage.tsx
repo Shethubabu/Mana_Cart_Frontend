@@ -1,10 +1,12 @@
 import { PackageCheck } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { useOrders } from "@/hooks/useOrders"
 import { formatCompactDate, formatCurrency, getProductImage } from "@/lib/format"
 
 export default function OrdersPage() {
+  const [searchParams] = useSearchParams()
   const { orders, isLoading } = useOrders()
+  const paymentSuccess = searchParams.get("payment") === "success"
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
@@ -15,6 +17,12 @@ export default function OrdersPage() {
         <h1 className="mt-2 text-3xl font-black uppercase text-slate-950">
           Purchase history
         </h1>
+
+        {paymentSuccess && (
+          <div className="mt-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            Payment completed successfully through Stripe.
+          </div>
+        )}
 
         {isLoading ? (
           <p className="mt-6 text-sm text-slate-500">Loading orders...</p>
