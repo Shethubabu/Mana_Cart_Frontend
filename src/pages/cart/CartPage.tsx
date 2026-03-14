@@ -29,9 +29,19 @@ export default function CartPage() {
     )
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const delivery = subtotal > 999 ? 0 : 99
-  const total = subtotal + delivery
+  const subtotal = items.reduce(
+  (sum, item) => sum + item.product.price * item.quantity,
+  0
+)
+
+const delivery =
+  items.length === 0
+    ? 0
+    : subtotal > 100
+    ? 0
+    : 1
+
+const total = subtotal + delivery
 
   const handleQuantityChange = async (cartId: number, quantity: number) => {
     try {

@@ -1,11 +1,23 @@
 import type { Product } from "./types"
 
-export const formatCurrency = (value: number) =>
+const USD_TO_INR = 83
+
+export const formatCurrency = (usd: number) => {
+  const inr = usd * USD_TO_INR
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
+  }).format(inr)
+}
+
+export const formatINR = (value: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0
-  }).format(value * 50)
+  }).format(value)
 
 export const formatCompactDate = (value: string) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -20,10 +32,13 @@ export const getProductImage = (product?: Partial<Product> | null) =>
 
 export const getDiscountedPrice = (product: Partial<Product>) => {
   const discount = product.discountPercentage || 0
+  const USD_TO_INR = 83
 
   if (!product.price || discount <= 0) {
     return null
   }
 
-  return Math.round(product.price / (1 - discount / 100))
+  const priceInRupees = product.price * USD_TO_INR
+
+  return Math.round(priceInRupees / (1 - discount / 100))
 }

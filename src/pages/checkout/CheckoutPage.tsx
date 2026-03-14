@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react"
+import { isAxiosError } from "axios"
 import { CheckCircle2, CreditCard, MapPin, Smartphone, Truck } from "lucide-react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { useCart } from "@/hooks/useCart"
 import { useOrders } from "@/hooks/useOrders"
 import { useAddresses } from "@/hooks/useAddresses"
 import { formatCurrency } from "@/lib/format"
+import { loadRazorpaySdk } from "@/lib/razorpay"
 import { upiSchema } from "@/lib/validation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,15 +28,16 @@ const paymentMethods = [
     icon: Smartphone
   },
   {
-    id: "stripe",
+    id: "razorpay",
     title: "Cards and online payment",
-    description: "Pay securely using Stripe Checkout.",
+    description: "Pay securely using Razorpay test checkout.",
     icon: CreditCard
   }
 ] as const
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const { items } = useCart()
   const { addresses, isLoading: isLoadingAddresses } = useAddresses()
@@ -44,6 +48,7 @@ export default function CheckoutPage() {
   const [upiId, setUpiId] = useState("")
   const [upiError, setUpiError] = useState("")
   const paymentCancelled = searchParams.get("payment") === "cancelled"
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
   useEffect(() => {
     if (!addresses.length) {
@@ -58,8 +63,12 @@ export default function CheckoutPage() {
     )
   }, [addresses])
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const delivery = subtotal > 999 ? 0 : 99
+  const subtotal = items.reduce(
+  (sum, item) => sum + item.product.price * item.quantity,
+  0)
+
+  const delivery = subtotal > 100 ? 0 : 1
+
   const total = subtotal + delivery
   const selectedAddress = addresses.find((address) => address.id === selectedAddressId)
   const selectedPayment = paymentMethods.find((method) => method.id === paymentMethod)
@@ -77,6 +86,45 @@ export default function CheckoutPage() {
       })),
     [items]
   )
+
+  const resolveCheckoutError = (error: unknown) => {
+    if (isAxiosError<{ message?: string }>(error)) {
+      return error.response?.data?.message || error.message
+    }
+
+    if (error instanceof Error) {
+      return error.message
+    }
+
+    return "Please verify your payment choice and try again."
+  }
+
+  const getRazorpayConfig = (
+    response: Awaited<ReturnType<typeof checkout>>
+  ) => {
+    const key =
+      import.meta.env.VITE_RAZORPAY_KEY_ID?.trim() ||
+      response?.key?.trim() ||
+      response?.keyId?.trim() ||
+      response?.razorpayKey?.trim() ||
+      response?.razorpayKeyId?.trim() ||
+      ""
+    const orderId =
+      response?.orderId ||
+      response?.order_id ||
+      response?.razorpayOrderId ||
+      response?.order?.id ||
+      ""
+    const amount = response?.amount ?? response?.order?.amount
+    const currency = response?.currency ?? response?.order?.currency ?? "INR"
+
+    return {
+      key,
+      orderId,
+      amount,
+      currency
+    }
+  }
 
   const placeOrder = async () => {
     if (!selectedAddress) {
@@ -111,29 +159,64 @@ export default function CheckoutPage() {
     }
 
     try {
-      const origin = window.location.origin
       const response = await checkout({
         addressId: selectedAddress.id,
         paymentMethod,
-        upiId: paymentMethod === "upi" ? validatedUpiId : undefined,
-        successUrl:
-          paymentMethod === "stripe" ? `${origin}/orders?payment=success` : undefined,
-        cancelUrl:
-          paymentMethod === "stripe"
-            ? `${origin}/checkout?payment=cancelled`
-            : undefined
+        upiId: paymentMethod === "upi" ? validatedUpiId : undefined
       })
 
-      if (paymentMethod === "stripe") {
-        if (!response?.checkoutUrl) {
-          throw new Error("Stripe checkout session URL was not returned.")
+      if (paymentMethod === "razorpay") {
+        const razorpayConfig = getRazorpayConfig(response)
+
+        if (!razorpayConfig.key) {
+          throw new Error("Razorpay key ID is missing. Set VITE_RAZORPAY_KEY_ID or return a public key from the backend.")
+        }
+
+        if (
+          !razorpayConfig.orderId ||
+          typeof razorpayConfig.amount !== "number" ||
+          Number.isNaN(razorpayConfig.amount)
+        ) {
+          throw new Error("Razorpay checkout details were not returned in a valid format.")
+        }
+
+        await loadRazorpaySdk()
+
+        if (!window.Razorpay) {
+          throw new Error("Razorpay SDK is unavailable.")
         }
 
         pushToast({
           tone: "info",
-          title: "Redirecting to payment gateway"
+          title: "Opening Razorpay checkout"
         })
-        window.location.assign(response.checkoutUrl)
+
+        const razorpay = new window.Razorpay({
+          key: razorpayConfig.key,
+          amount: razorpayConfig.amount,
+          currency: razorpayConfig.currency,
+          order_id: razorpayConfig.orderId,
+          name: response.name || "ManaCart",
+          description: response.description || "Complete your order payment",
+          image: response.image,
+          prefill: response.prefill,
+          notes: response.notes,
+          theme: {
+            color: "#ff3f6c"
+          },
+          handler: async () => {
+            await queryClient.invalidateQueries({ queryKey: ["orders"] })
+            await queryClient.invalidateQueries({ queryKey: ["cart"] })
+            navigate("/orders?payment=success")
+          },
+          modal: {
+            ondismiss: () => {
+              navigate("/checkout?payment=cancelled")
+            }
+          }
+        })
+
+        razorpay.open()
         return
       }
 
@@ -143,11 +226,11 @@ export default function CheckoutPage() {
         description: "You can track it from your orders page."
       })
       navigate("/orders")
-    } catch {
+    } catch (error) {
       pushToast({
         tone: "error",
         title: "Checkout failed",
-        description: "Please verify your payment choice and try again."
+        description: resolveCheckoutError(error)
       })
     }
   }
@@ -380,7 +463,7 @@ export default function CheckoutPage() {
             <div className="space-y-4 border-t border-slate-200 pt-4 text-sm text-slate-600">
               <div className="flex justify-between">
                 <span>Items</span>
-                <span>{items.length}</span>
+                <span>{itemCount}</span>
               </div>
               <div className="flex justify-between">
                 <span>Payment</span>
@@ -423,10 +506,10 @@ export default function CheckoutPage() {
               className="h-12 w-full rounded-full bg-slate-950 text-white hover:bg-slate-900"
             >
               {isCheckingOut
-                ? paymentMethod === "stripe"
+                ? paymentMethod === "razorpay"
                   ? "Redirecting..."
                   : "Placing order..."
-                : paymentMethod === "stripe"
+                : paymentMethod === "razorpay"
                   ? "Continue to payment"
                   : "Place order"}
             </Button>
