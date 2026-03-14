@@ -20,7 +20,7 @@ export default function OrdersPage() {
 
         {paymentSuccess && (
           <div className="mt-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Payment completed successfully through Stripe.
+            Payment completed successfully through Razorpay.
           </div>
         )}
 

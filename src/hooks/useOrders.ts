@@ -4,15 +4,35 @@ import { useAuthStore } from "@/store/authStore"
 import type { Order } from "@/lib/types"
 
 export type CheckoutPayload = {
-  paymentMethod: "cod" | "upi" | "stripe"
+  paymentMethod: "cod" | "upi" | "razorpay"
   addressId?: number
   upiId?: string
-  successUrl?: string
-  cancelUrl?: string
 }
 
 type CheckoutResponse = {
-  checkoutUrl?: string
+  key?: string
+  keyId?: string
+  razorpayKey?: string
+  razorpayKeyId?: string
+  orderId?: string
+  order_id?: string
+  razorpayOrderId?: string
+  amount?: number
+  currency?: string
+  name?: string
+  description?: string
+  image?: string
+  prefill?: {
+    name?: string
+    email?: string
+    contact?: string
+  }
+  notes?: Record<string, string>
+  order?: {
+    id?: string
+    amount?: number
+    currency?: string
+  }
 }
 
 export const useOrders = () => {
@@ -34,7 +54,7 @@ export const useOrders = () => {
       return response.data
     },
     onSuccess: async (_, variables) => {
-      if (variables.paymentMethod === "stripe") {
+      if (variables.paymentMethod === "razorpay") {
         return
       }
 
