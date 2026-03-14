@@ -28,7 +28,7 @@ export default function HeroCarousel() {
 
   return (
     <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[1.8fr_1fr] lg:px-6">
-      <div className="relative overflow-hidden rounded-[2rem] bg-[#f7d8df]">
+      <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] bg-[#f7d8df]">
         {slides.map((product, slideIndex) => (
           <div
             key={product.id}
@@ -38,22 +38,20 @@ export default function HeroCarousel() {
           >
             <div className="grid h-full items-center gap-8 p-8 md:grid-cols-2 md:p-12">
               <div>
-                <p className="text-xs font-black text-[#ff3f6c]">
-                  Trend Drop
-                </p>
-                <h1 className="mt-4 max-w-md text-4xl font-black tracking-tight leading-none text-slate-950 md:text-6xl">
+                <p className="text-xs font-black text-[#ff3f6c]">Featured pick</p>
+                <h1 className="mt-4 max-w-md text-4xl font-black leading-none tracking-tight text-slate-950 md:text-6xl">
                   {product.title}
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-6 text-slate-700 md:text-base">
-                  Fashion-first everyday essentials with premium finishing,
-                  sharp fits, and offer-led pricing built for fast checkout.
+                  Discover better prices, faster delivery, and smoother checkout
+                  across electronics, home, beauty, fashion, and everyday needs.
                 </p>
                 <div className="mt-8 flex items-center gap-5">
                   <Link
                     to={`/product/${product.id}`}
                     className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white"
                   >
-                    Shop Now
+                    Shop now
                     <ArrowRight size={16} />
                   </Link>
                   <p className="text-lg font-bold text-slate-900">
@@ -97,14 +95,12 @@ export default function HeroCarousel() {
               cardIndex === 0 ? "bg-[#d4f3ea]" : "bg-[#dfe7ff]"
             }`}
           >
-            <p className="text-xs font-black text-slate-700">
-              New edit
-            </p>
-            <h2 className="mt-3 text-2xl font-black tracking-tight leading-tight text-slate-950">
+            <p className="text-xs font-black text-slate-700">Fresh arrival</p>
+            <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight text-slate-950">
               {product.title}
             </h2>
             <p className="mt-2 text-sm text-slate-700">
-              Fresh arrivals with daily deal pricing.
+              New products with daily deal pricing.
             </p>
             <img
               src={getProductImage(product)}

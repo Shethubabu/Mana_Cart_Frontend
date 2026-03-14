@@ -2,7 +2,11 @@ import { BadgeCheck, Headphones, RotateCcw, Truck } from "lucide-react"
 
 const benefits = [
   { icon: Truck, title: "Express delivery", copy: "Rapid dispatch on every order." },
-  { icon: BadgeCheck, title: "Verified styles", copy: "Quality-checked product selection." },
+  {
+    icon: BadgeCheck,
+    title: "Trusted products",
+    copy: "Reliable picks across every category."
+  },
   { icon: RotateCcw, title: "Easy returns", copy: "Simple returns on eligible orders." },
   { icon: Headphones, title: "Always-on support", copy: "Responsive help when you need it." }
 ]

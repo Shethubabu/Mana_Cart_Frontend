@@ -40,24 +40,24 @@ export default function ProductsPage() {
         <div className="flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.28em] text-[#ff3f6c]">
-              Collection
+              Catalog
             </p>
-            <h1 className="mt-2 text-3xl font-black uppercase text-slate-950">
+            <h1 className="mt-2 text-3xl font-black text-slate-950">
               {category || "All products"}
             </h1>
             <p className="mt-2 text-sm text-slate-600">
               {search
                 ? `Showing results for "${search}".`
-                : "Browse the full ManaCart catalog."}
+                : "Browse the full ManaCart product catalog."}
             </p>
           </div>
 
           <div className="rounded-full bg-[#fff1f4] px-4 py-2 text-sm font-semibold text-[#ff3f6c]">
-            {products.length} styles loaded
+            {products.length} products found
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {isLoading
             ? Array.from({ length: 8 }).map((_, index) => (
                 <div
@@ -70,23 +70,21 @@ export default function ProductsPage() {
               ))}
         </div>
 
-        {!isLoading && products.length === 0 && (
-          <div className="rounded-[1.75rem] bg-[#f7f7fb] p-10 text-center">
-            <h2 className="text-2xl font-black uppercase text-slate-950">
-              No products found
-            </h2>
+        {!isLoading && products.length === 0 ? (
+          <div className="mt-8 rounded-[1.75rem] bg-[#f7f7fb] p-10 text-center">
+            <h2 className="text-2xl font-black text-slate-950">No products found</h2>
             <p className="mt-3 text-sm text-slate-600">
               Try another search term or switch categories.
             </p>
           </div>
-        )}
+        ) : null}
 
         <div ref={loader} className="mt-8 flex h-10 items-center justify-center">
-          {isFetchingNextPage && (
+          {isFetchingNextPage ? (
             <p className="text-sm font-medium text-slate-500">
-              Loading more styles...
+              Loading more products...
             </p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

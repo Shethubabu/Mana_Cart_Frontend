@@ -5,6 +5,7 @@ import type { Order } from "@/lib/types"
 
 export type CheckoutPayload = {
   paymentMethod: "cod" | "upi" | "stripe"
+  addressId?: number
   upiId?: string
   successUrl?: string
   cancelUrl?: string

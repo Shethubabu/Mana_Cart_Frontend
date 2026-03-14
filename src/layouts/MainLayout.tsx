@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom"
 import AnnouncementBar from "@/components/navbar/AnnouncementBar"
 import Navbar from "@/components/navbar/Navbar"
 import Footer from "@/components/footer/Footer"
+import Toaster from "@/components/ui/toaster"
 
 export default function MainLayout({
   children
@@ -20,6 +21,7 @@ export default function MainLayout({
       <Navbar />
       <main className="min-h-[calc(100vh-220px)]">{children}</main>
       {!isAuthPage && <Footer />}
+      <Toaster />
     </div>
   )
 }

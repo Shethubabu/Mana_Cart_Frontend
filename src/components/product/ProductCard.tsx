@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/useCart"
 import { useSession } from "@/hooks/useSession"
 import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
 import type { Product } from "@/lib/types"
+import { pushToast } from "@/store/toastStore"
 
 export default function ProductCard({
   product,
@@ -21,24 +22,57 @@ export default function ProductCard({
   const { addToCart } = useCart()
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
   const wishlist = useWishlistStore((state) => state.items)
+  const [isAdding, setIsAdding] = useState(false)
 
   const liked = wishlist.some((item) => item.id === product.id)
   const originalPrice = getDiscountedPrice(product)
 
-  const requireAuthAction = async (action: () => Promise<void> | void) => {
+  const handleWishlistToggle = () => {
+    const nextLiked = !liked
+
+    toggleWishlist({
+      id: product.id,
+      name: product.title,
+      price: product.price,
+      image: getProductImage(product)
+    })
+
+    pushToast({
+      tone: "success",
+      title: nextLiked ? "Saved to wishlist" : "Removed from wishlist",
+      description: product.title
+    })
+  }
+
+  const handleAddToCart = async () => {
     if (!user) {
+      pushToast({
+        tone: "info",
+        title: "Login required",
+        description: "Sign in to add products to your cart."
+      })
       navigate("/login")
       return
     }
 
-    await action()
-  }
-
-  const handleAddToCart = async () => {
-    await requireAuthAction(async () => {
+    try {
+      setIsAdding(true)
       await addToCart({ productId: product.id, quantity: 1 })
       onAddToCartSuccess?.()
-    })
+      pushToast({
+        tone: "success",
+        title: "Added to cart",
+        description: product.title
+      })
+    } catch {
+      pushToast({
+        tone: "error",
+        title: "Could not add to cart",
+        description: "Please try again."
+      })
+    } finally {
+      setIsAdding(false)
+    }
   }
 
   return (
@@ -47,14 +81,7 @@ export default function ProductCard({
         <div className="relative overflow-hidden bg-[#f7f7fb] p-5">
           <button
             type="button"
-            onClick={() =>
-              toggleWishlist({
-                id: product.id,
-                name: product.title,
-                price: product.price,
-                image: getProductImage(product)
-              })
-            }
+            onClick={handleWishlistToggle}
             className="absolute right-4 top-4 z-10 rounded-full bg-white p-2 shadow-sm"
           >
             <Heart
@@ -81,7 +108,7 @@ export default function ProductCard({
         <div className="space-y-3 p-5">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
             <span className="rounded-full bg-[#eef2ff] px-2.5 py-1 uppercase tracking-[0.16em] text-slate-700">
-              {product.category?.name || "Fashion"}
+              {product.category?.name || "General"}
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#edfdf5] px-2.5 py-1 text-[#027a48]">
               <Star size={12} className="fill-current" />
@@ -97,27 +124,28 @@ export default function ProductCard({
 
           <div className="flex items-end gap-2">
             <span className="text-xl font-black text-slate-950">
-              {formatCurrency(product.price )}
+              {formatCurrency(product.price)}
             </span>
-            {originalPrice && (
+            {originalPrice ? (
               <span className="pb-0.5 text-sm text-slate-400 line-through">
                 {formatCurrency(originalPrice)}
               </span>
-            )}
+            ) : null}
           </div>
 
           <div className="flex gap-3">
             <button
               type="button"
               onClick={handleAddToCart}
-              className="flex-1 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
+              disabled={isAdding}
+              className="flex-1 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Add to cart
+              {isAdding ? "Adding..." : "Add to cart"}
             </button>
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-slate-700"
+              className="rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
             >
               View
             </button>
@@ -125,24 +153,15 @@ export default function ProductCard({
         </div>
       </article>
 
-      {open && (
+      {open ? (
         <QuickView
           product={product}
           liked={liked}
-          onToggleWishlist={() =>
-            toggleWishlist({
-              id: product.id,
-              name: product.title,
-              price: product.price,
-              image: getProductImage(product)
-            })
-          }
-          onAddToCart={() =>
-            handleAddToCart()
-          }
+          onToggleWishlist={handleWishlistToggle}
+          onAddToCart={handleAddToCart}
           close={() => setOpen(false)}
         />
-      )}
+      ) : null}
     </>
   )
 }

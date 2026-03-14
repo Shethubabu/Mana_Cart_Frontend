@@ -1,5 +1,13 @@
-import { X } from "lucide-react"
+import { SlidersHorizontal } from "lucide-react"
 import { useSearchStore } from "@/store/searchStore"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 export default function FilterDrawer({
   categories
@@ -8,66 +16,54 @@ export default function FilterDrawer({
 }) {
   const { filterOpen, closeFilter, category, setCategory } = useSearchStore()
 
-  if (!filterOpen) {
-    return null
-  }
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/40">
-      <div className="h-full w-full max-w-sm bg-white p-6 shadow-2xl">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold text-[#ff3f6c]">
-              Refine
-            </p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-900">
-              Shop by category
-            </h2>
+    <Dialog open={filterOpen} onOpenChange={(open) => !open && closeFilter()}>
+      <DialogContent className="left-auto right-0 top-0 h-screen max-w-sm translate-x-0 translate-y-0 rounded-none border-l border-slate-200 bg-white p-0 sm:max-w-sm">
+        <DialogHeader className="border-b border-slate-100 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex size-10 items-center justify-center rounded-2xl bg-[#fff1f4] text-[#ff3f6c]">
+              <SlidersHorizontal size={18} />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-black text-slate-950">
+                Filters
+              </DialogTitle>
+              <DialogDescription>
+                Pick a category to refine the product catalog.
+              </DialogDescription>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={closeFilter}
-            className="rounded-full border border-slate-200 p-2 text-slate-600"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        </DialogHeader>
 
-        <div className="space-y-3">
-          <button
+        <div className="space-y-3 overflow-y-auto px-6 py-6">
+          <Button
             type="button"
+            variant={category === "" ? "secondary" : "outline"}
+            className="h-auto w-full justify-start rounded-2xl px-4 py-3 text-left"
             onClick={() => {
               setCategory("")
               closeFilter()
             }}
-            className={`block w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
-              category === ""
-                ? "border-[#ff3f6c] bg-[#fff1f4] text-[#ff3f6c]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
           >
             All categories
-          </button>
+          </Button>
 
           {categories.map((cat) => (
-            <button
+            <Button
               key={cat.id}
               type="button"
+              variant={category === cat.name ? "secondary" : "outline"}
+              className="h-auto w-full justify-start rounded-2xl px-4 py-3 text-left"
               onClick={() => {
                 setCategory(cat.name)
                 closeFilter()
               }}
-              className={`block w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
-                category === cat.name
-                  ? "border-[#ff3f6c] bg-[#fff1f4] text-[#ff3f6c]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
             >
               {cat.name}
-            </button>
+            </Button>
           ))}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

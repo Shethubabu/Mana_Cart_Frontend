@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSession } from "@/hooks/useSession"
+import { getFieldErrors, registerSchema } from "@/lib/validation"
+import { pushToast } from "@/store/toastStore"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -9,16 +11,41 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string
+    email?: string
+    password?: string
+  }>({})
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
+    const result = registerSchema.safeParse({ name, email, password })
+
+    if (!result.success) {
+      const errors = getFieldErrors<"name" | "email" | "password">(result.error)
+      setFieldErrors(errors)
+      setError("Correct the highlighted fields and try again.")
+      return
+    }
+
+    setFieldErrors({})
 
     try {
-      await register({ name, email, password })
+      await register(result.data)
+      pushToast({
+        tone: "success",
+        title: "Account created",
+        description: "You are now logged in."
+      })
       navigate("/")
     } catch {
       setError("Unable to create account. Try a different email.")
+      pushToast({
+        tone: "error",
+        title: "Registration failed",
+        description: "Unable to create account. Try a different email."
+      })
     }
   }
 
@@ -30,7 +57,7 @@ export default function RegisterPage() {
             New account
           </p>
           <h1 className="mt-6 text-5xl font-black uppercase leading-none text-slate-950">
-            Join the next style drop
+            Join ManaCart today
           </h1>
           <p className="mt-5 max-w-md text-sm leading-7 text-slate-700">
             Register once to unlock cart sync, order history, and faster repeat
@@ -49,23 +76,53 @@ export default function RegisterPage() {
           <div className="mt-8 space-y-4">
             <input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value)
+                if (fieldErrors.name) {
+                  setFieldErrors((current) => ({ ...current, name: undefined }))
+                }
+              }}
               placeholder="Full name"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none ${
+                fieldErrors.name ? "border-[#ff3f6c]" : "border-slate-200"
+              }`}
             />
+            {fieldErrors.name ? (
+              <p className="-mt-2 text-sm text-[#ff3f6c]">{fieldErrors.name}</p>
+            ) : null}
             <input
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                if (fieldErrors.email) {
+                  setFieldErrors((current) => ({ ...current, email: undefined }))
+                }
+              }}
               placeholder="Email"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none ${
+                fieldErrors.email ? "border-[#ff3f6c]" : "border-slate-200"
+              }`}
             />
+            {fieldErrors.email ? (
+              <p className="-mt-2 text-sm text-[#ff3f6c]">{fieldErrors.email}</p>
+            ) : null}
             <input
               value={password}
               type="password"
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                if (fieldErrors.password) {
+                  setFieldErrors((current) => ({ ...current, password: undefined }))
+                }
+              }}
               placeholder="Password"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none ${
+                fieldErrors.password ? "border-[#ff3f6c]" : "border-slate-200"
+              }`}
             />
+            {fieldErrors.password ? (
+              <p className="-mt-2 text-sm text-[#ff3f6c]">{fieldErrors.password}</p>
+            ) : null}
           </div>
 
           {error && <p className="mt-4 text-sm text-[#ff3f6c]">{error}</p>}
