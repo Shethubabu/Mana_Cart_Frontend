@@ -48,7 +48,12 @@ api.interceptors.response.use(
         })
         .catch((refreshError) => {
           useAuthStore.getState().clearSession()
-          throw refreshError
+
+          if (typeof window !== "undefined") {
+          window.location.href = "/login"
+        }
+
+        throw refreshError
         })
         .finally(() => {
           refreshPromise = null

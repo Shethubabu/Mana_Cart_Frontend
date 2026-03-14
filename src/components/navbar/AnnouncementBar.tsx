@@ -1,11 +1,15 @@
 export default function AnnouncementBar() {
   return (
-    <div className="bg-black px-4 py-3 text-center text-sm sm:text-base font-bold tracking-wide">
-      <span className="text-yellow-400">Welcome to Mana Cart</span>
+    <div className="bg-slate-950 px-4 py-3 text-center text-sm font-semibold tracking-wide sm:text-base">
+      <span className="text-amber-300">Welcome to ManaCart</span>
       <span className="mx-3 text-white">|</span>
-      <span className="text-white">Your one‑stop shop for great deals</span>
+      <span className="text-white">
+        Your one-stop shop for everyday essentials and trending products
+      </span>
       <span className="mx-3 text-white">|</span>
-      <span className="text-yellow-400">Enjoy shopping with us!</span>
+      <span className="text-amber-300">
+        Fast checkout, saved addresses, and better deals
+      </span>
     </div>
   )
 }

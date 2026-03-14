@@ -3,6 +3,18 @@ import { api } from "@/api/client"
 import { useAuthStore } from "@/store/authStore"
 import type { Order } from "@/lib/types"
 
+export type CheckoutPayload = {
+  paymentMethod: "cod" | "upi" | "stripe"
+  addressId?: number
+  upiId?: string
+  successUrl?: string
+  cancelUrl?: string
+}
+
+type CheckoutResponse = {
+  checkoutUrl?: string
+}
+
 export const useOrders = () => {
   const queryClient = useQueryClient()
   const accessToken = useAuthStore((state) => state.accessToken)
@@ -17,11 +29,15 @@ export const useOrders = () => {
   })
 
   const checkout = useMutation({
-    mutationFn: async () => {
-      const response = await api.post("/orders/checkout")
+    mutationFn: async (payload: CheckoutPayload) => {
+      const response = await api.post<CheckoutResponse>("/orders/checkout", payload)
       return response.data
     },
-    onSuccess: async () => {
+    onSuccess: async (_, variables) => {
+      if (variables.paymentMethod === "stripe") {
+        return
+      }
+
       await queryClient.invalidateQueries({ queryKey: ["orders"] })
       await queryClient.invalidateQueries({ queryKey: ["cart"] })
     }

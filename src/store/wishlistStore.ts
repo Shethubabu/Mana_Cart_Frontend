@@ -10,6 +10,7 @@ interface WishlistItem {
 interface WishlistState {
   items:WishlistItem[]
   toggleWishlist:(item:WishlistItem)=>void
+  removeWishlistItem:(id:number)=>void
 }
 
 export const useWishlistStore = create<WishlistState>((set,get)=>({
@@ -34,6 +35,12 @@ export const useWishlistStore = create<WishlistState>((set,get)=>({
 
     }
 
+  },
+
+  removeWishlistItem:(id)=>{
+    set({
+      items:get().items.filter(p=>p.id!==id)
+    })
   }
 
 }))

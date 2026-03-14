@@ -8,6 +8,7 @@ import { useSession } from "@/hooks/useSession"
 import { useWishlistStore } from "@/store/wishlistStore"
 import ProductCard from "@/components/product/ProductCard"
 import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
+import { pushToast } from "@/store/toastStore"
 
 export default function ProductPage() {
   const navigate = useNavigate()
@@ -19,9 +20,10 @@ export default function ProductPage() {
   const { data: products } = useProducts("", "")
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
   const wishlist = useWishlistStore((state) => state.items)
+  const [isAdding, setIsAdding] = useState(false)
 
   if (isLoading) {
-    return <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">Loading...</div>
+    return <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">Loading product...</div>
   }
 
   if (!data) {
@@ -40,18 +42,56 @@ export default function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!user) {
+      pushToast({
+        tone: "info",
+        title: "Login required",
+        description: "Sign in to add products to your cart."
+      })
       navigate("/login")
       return
     }
 
-    await addToCart({ productId: data.id, quantity: 1 })
+    try {
+      setIsAdding(true)
+      await addToCart({ productId: data.id, quantity: 1 })
+      pushToast({
+        tone: "success",
+        title: "Added to cart",
+        description: data.title
+      })
+    } catch {
+      pushToast({
+        tone: "error",
+        title: "Could not add to cart",
+        description: "Please try again."
+      })
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  const handleWishlistToggle = () => {
+    const nextLiked = !liked
+
+    toggleWishlist({
+      id: data.id,
+      name: data.title,
+      price: data.price,
+      image: getProductImage(data)
+    })
+
+    pushToast({
+      tone: "success",
+      title: nextLiked ? "Saved to wishlist" : "Removed from wishlist",
+      description: data.title
+    })
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
       <div className="grid gap-8 rounded-[2rem] bg-white p-6 shadow-[0_16px_50px_rgba(15,23,42,0.05)] lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
         <div className="grid gap-4 lg:grid-cols-[100px_1fr]">
-          <div className="order-2 flex gap-3 lg:order-1 lg:flex-col">
+          <div className="order-2 flex gap-3 overflow-x-auto lg:order-1 lg:flex-col">
             {images.map((image, index) => (
               <button
                 key={`${image.url}-${index}`}
@@ -74,16 +114,16 @@ export default function ProductPage() {
             <img
               src={currentImage}
               alt={data.title}
-              className="mx-auto h-[460px] w-full object-contain"
+              className="mx-auto h-[320px] w-full object-contain sm:h-[420px] lg:h-[460px]"
             />
           </div>
         </div>
 
         <div>
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#ff3f6c]">
-            {data.category?.name || "Fashion"}
+            {data.category?.name || "General"}
           </p>
-          <h1 className="mt-3 text-4xl font-black uppercase leading-tight text-slate-950">
+          <h1 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
             {data.title}
           </h1>
 
@@ -101,11 +141,11 @@ export default function ProductPage() {
             <span className="text-3xl font-black text-slate-950">
               {formatCurrency(data.price)}
             </span>
-            {originalPrice && (
+            {originalPrice ? (
               <span className="pb-1 text-lg text-slate-400 line-through">
                 {formatCurrency(originalPrice)}
               </span>
-            )}
+            ) : null}
           </div>
 
           <p className="mt-5 max-w-xl text-sm leading-7 text-slate-600">
@@ -116,28 +156,22 @@ export default function ProductPage() {
             <button
               type="button"
               onClick={handleAddToCart}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white"
+              disabled={isAdding}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               <ShoppingBag size={16} />
-              Add to cart
+              {isAdding ? "Adding..." : "Add to cart"}
             </button>
             <button
               type="button"
-              onClick={() =>
-                toggleWishlist({
-                  id: data.id,
-                  name: data.title,
-                  price: data.price,
-                  image: getProductImage(data)
-                })
-              }
-              className={`inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] ${
+              onClick={handleWishlistToggle}
+              className={`inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold ${
                 liked
                   ? "border-[#ff3f6c] text-[#ff3f6c]"
                   : "border-slate-200 text-slate-700"
               }`}
             >
-              <Heart size={16} />
+              <Heart size={16} className={liked ? "fill-current" : ""} />
               Wishlist
             </button>
           </div>
@@ -158,7 +192,7 @@ export default function ProductPage() {
             <div className="rounded-[1.25rem] bg-[#edfdf5] p-4">
               <Star size={18} className="text-slate-900" />
               <p className="mt-3 text-sm font-semibold text-slate-900">
-                Premium quality
+                Quality products
               </p>
             </div>
           </div>
@@ -166,9 +200,7 @@ export default function ProductPage() {
       </div>
 
       <section className="mt-10 rounded-[2rem] bg-white p-6 shadow-[0_16px_50px_rgba(15,23,42,0.05)] lg:p-8">
-        <h2 className="text-2xl font-black uppercase text-slate-950">
-          Customer reviews
-        </h2>
+        <h2 className="text-2xl font-black text-slate-950">Customer reviews</h2>
         <div className="mt-6 space-y-5">
           {data.reviews?.length ? (
             data.reviews.map((review, index) => (
@@ -189,10 +221,8 @@ export default function ProductPage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-black uppercase text-slate-950">
-          Similar styles
-        </h2>
-        <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4">
+        <h2 className="text-2xl font-black text-slate-950">Similar products</h2>
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {similarProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSession } from "@/hooks/useSession"
+import { getFieldErrors, loginSchema } from "@/lib/validation"
+import { pushToast } from "@/store/toastStore"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -8,16 +10,40 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string
+    password?: string
+  }>({})
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError("")
+    const result = loginSchema.safeParse({ email, password })
+
+    if (!result.success) {
+      const errors = getFieldErrors<"email" | "password">(result.error)
+      setFieldErrors(errors)
+      setError("Correct the highlighted fields and try again.")
+      return
+    }
+
+    setFieldErrors({})
 
     try {
-      await login({ email, password })
+      await login(result.data)
+      pushToast({
+        tone: "success",
+        title: "Logged in successfully",
+        description: "Your cart and account details are ready."
+      })
       navigate("/")
     } catch {
       setError("Invalid credentials. Check your email and password.")
+      pushToast({
+        tone: "error",
+        title: "Login failed",
+        description: "Invalid credentials. Check your email and password."
+      })
     }
   }
 
@@ -47,17 +73,37 @@ export default function LoginPage() {
           <div className="mt-8 space-y-4">
             <input
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                if (fieldErrors.email) {
+                  setFieldErrors((current) => ({ ...current, email: undefined }))
+                }
+              }}
               placeholder="Email"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none ${
+                fieldErrors.email ? "border-[#ff3f6c]" : "border-slate-200"
+              }`}
             />
+            {fieldErrors.email ? (
+              <p className="-mt-2 text-sm text-[#ff3f6c]">{fieldErrors.email}</p>
+            ) : null}
             <input
               value={password}
               type="password"
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                if (fieldErrors.password) {
+                  setFieldErrors((current) => ({ ...current, password: undefined }))
+                }
+              }}
               placeholder="Password"
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none ${
+                fieldErrors.password ? "border-[#ff3f6c]" : "border-slate-200"
+              }`}
             />
+            {fieldErrors.password ? (
+              <p className="-mt-2 text-sm text-[#ff3f6c]">{fieldErrors.password}</p>
+            ) : null}
           </div>
 
           {error && <p className="mt-4 text-sm text-[#ff3f6c]">{error}</p>}
