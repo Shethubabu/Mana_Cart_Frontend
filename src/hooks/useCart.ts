@@ -5,18 +5,21 @@ import type { CartItem } from "@/lib/types"
 
 export const useCart = () => {
   const queryClient = useQueryClient()
-  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
 
   const cartQuery = useQuery<CartItem[]>({
-    queryKey: ["cart"],
+    queryKey: ["cart", user?.id],
     queryFn: async () => {
       const response = await api.get("/cart")
       return response.data
     },
-    enabled: Boolean(accessToken)
+    enabled: Boolean(user)
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["cart"] })
+  const invalidate = () =>
+    queryClient.invalidateQueries({
+      queryKey: ["cart", user?.id]
+    })
 
   const addToCart = useMutation({
     mutationFn: async ({
@@ -26,7 +29,10 @@ export const useCart = () => {
       productId: number
       quantity: number
     }) => {
-      const response = await api.post("/cart/add", { productId, quantity })
+      const response = await api.post("/cart/add", {
+        productId,
+        quantity
+      })
       return response.data
     },
     onSuccess: invalidate
@@ -40,7 +46,10 @@ export const useCart = () => {
       cartId: number
       quantity: number
     }) => {
-      const response = await api.patch("/cart/update", { cartId, quantity })
+      const response = await api.patch("/cart/update", {
+        cartId,
+        quantity
+      })
       return response.data
     },
     onSuccess: invalidate
@@ -63,12 +72,16 @@ export const useCart = () => {
   return {
     items: cartQuery.data || [],
     isLoading: cartQuery.isLoading,
+
     addToCart: addToCart.mutateAsync,
     isAdding: addToCart.isPending,
+
     updateCart: updateCart.mutateAsync,
     isUpdating: updateCart.isPending,
+
     removeItem: removeItem.mutateAsync,
     isRemoving: removeItem.isPending,
+
     clearCart: clearCart.mutateAsync,
     isClearing: clearCart.isPending
   }

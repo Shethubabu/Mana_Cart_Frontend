@@ -45,22 +45,24 @@ const normalizeAddress = (address: AddressApiRecord): Address => ({
 
 export const useAddresses = () => {
   const queryClient = useQueryClient()
-  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
 
   const addressQuery = useQuery({
-    queryKey: ["addresses"],
+    queryKey: ["addresses",user?.id],
     queryFn: async () => {
       const res = await api.get("/addresses")
       return (res.data as AddressApiRecord[]).map(normalizeAddress)
     },
-    enabled: Boolean(accessToken)
+    enabled: Boolean(user)
   })
 
   const createAddress = useMutation({
     mutationFn: (data: AddressPayload) =>
       api.post("/addresses", data),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["addresses"] })
+      onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["addresses", user?.id] })
+
+   
   })
 
   const updateAddress = useMutation({
@@ -73,14 +75,14 @@ export const useAddresses = () => {
     }) => api.put(`/addresses/${id}`, data),
 
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["addresses"] })
+      queryClient.invalidateQueries({ queryKey: ["addresses", user?.id] })
   })
 
   const deleteAddress = useMutation({
     mutationFn: (id: number) => api.delete(`/addresses/${id}`),
 
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["addresses"] })
+      queryClient.invalidateQueries({ queryKey: ["addresses", user?.id] })
   })
 
   return {

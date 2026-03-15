@@ -15,57 +15,50 @@ type CheckoutResponse = {
   razorpayKey?: string
   razorpayKeyId?: string
   orderId?: string
-  order_id?: string
   razorpayOrderId?: string
   amount?: number
   currency?: string
-  name?: string
-  description?: string
-  image?: string
-  prefill?: {
-    name?: string
-    email?: string
-    contact?: string
-  }
-  notes?: Record<string, string>
-  order?: {
-    id?: string
-    amount?: number
-    currency?: string
-  }
 }
 
 export const useOrders = () => {
   const queryClient = useQueryClient()
-  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
 
   const ordersQuery = useQuery<Order[]>({
-    queryKey: ["orders"],
+    queryKey: ["orders", user?.id],
     queryFn: async () => {
       const response = await api.get("/orders")
       return response.data
     },
-    enabled: Boolean(accessToken)
+    enabled: Boolean(user)
   })
 
   const checkout = useMutation({
     mutationFn: async (payload: CheckoutPayload) => {
-      const response = await api.post<CheckoutResponse>("/orders/checkout", payload)
+      const response = await api.post<CheckoutResponse>(
+        "/orders/checkout",
+        payload
+      )
       return response.data
     },
-    onSuccess: async (_, variables) => {
-      if (variables.paymentMethod === "razorpay") {
-        return
-      }
 
-      await queryClient.invalidateQueries({ queryKey: ["orders"] })
-      await queryClient.invalidateQueries({ queryKey: ["cart"] })
+    onSuccess: async (_, variables) => {
+      if (variables.paymentMethod === "razorpay") return
+
+      await queryClient.invalidateQueries({
+        queryKey: ["orders", user?.id]
+      })
+
+      await queryClient.invalidateQueries({
+        queryKey: ["cart", user?.id]
+      })
     }
   })
 
   return {
     orders: ordersQuery.data || [],
     isLoading: ordersQuery.isLoading,
+
     checkout: checkout.mutateAsync,
     isCheckingOut: checkout.isPending
   }
