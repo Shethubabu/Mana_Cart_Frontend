@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios"
 import { useAuthStore } from "@/store/authStore"
 
 const baseURL =
@@ -9,24 +9,20 @@ export const api = axios.create({
   withCredentials: true
 })
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
-  return config
-})
-
-let refreshPromise: Promise<string> | null = null
+let refreshPromise: Promise<void> | null = null
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
 
-    if (error.response?.status !== 401 || originalRequest?._retry) {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      InternalAxiosRequestConfig & { _retry?: boolean }
+
+    if (!originalRequest) {
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error)
     }
 
@@ -37,31 +33,25 @@ api.interceptors.response.use(
         .post(
           `${baseURL}/auth/refresh`,
           {},
-          {
-            withCredentials: true
-          }
+          { withCredentials: true }
         )
-        .then((response) => {
-          const token = response.data.accessToken as string
-          useAuthStore.getState().setAccessToken(token)
-          return token
-        })
+        .then(() => {})
         .catch((refreshError) => {
-          useAuthStore.getState().clearSession()
+          useAuthStore.getState().setUser(null)
 
           if (typeof window !== "undefined") {
-          window.location.href = "/login"
-        }
+            window.location.href = "/login"
+          }
 
-        throw refreshError
+          throw refreshError
         })
         .finally(() => {
           refreshPromise = null
         })
     }
 
-    const nextToken = await refreshPromise
-    originalRequest.headers.Authorization = `Bearer ${nextToken}`
+    await refreshPromise
+
     return api(originalRequest)
   }
 )

@@ -117,7 +117,6 @@ export default function LoginPage() {
           </button>
 
           <div className="mt-6 flex items-center justify-between text-sm text-slate-600">
-            <Link to="/forgot-password">Forgot password</Link>
             <Link to="/register" className="font-semibold text-[#ff3f6c]">
               Create account
             </Link>

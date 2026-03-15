@@ -1,49 +1,48 @@
 import { create } from "zustand"
 import type { User } from "@/lib/types"
-
-const ACCESS_TOKEN_KEY = "manacart_access_token"
-
-const getStoredToken = () => {
-  if (typeof window === "undefined") {
-    return ""
-  }
-
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY) || ""
-}
-
-const storeToken = (token: string) => {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(ACCESS_TOKEN_KEY, token)
-  }
-}
-
-const removeToken = () => {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY)
-  }
-}
+import { api } from "@/api/client"
 
 interface AuthState {
   user: User | null
-  accessToken: string
-  setSession: (payload: { user: User; accessToken: string }) => void
-  setAccessToken: (accessToken: string) => void
-  clearSession: () => void
+  isAuthenticated: boolean
+  setUser: (user: User | null) => void
+  checkAuth: () => Promise<void>
+  logout: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  accessToken: getStoredToken(),
-  setSession: ({ user, accessToken }) => {
-    storeToken(accessToken)
-    set({ user, accessToken })
+  isAuthenticated: false,
+
+  setUser: (user) => {
+    set({
+      user,
+      isAuthenticated: !!user
+    })
   },
-  setAccessToken: (accessToken) => {
-  storeToken(accessToken)
-  set((state) => ({ ...state, accessToken }))
+
+  checkAuth: async () => {
+    try {
+      const res = await api.get("/auth/me")
+
+      set({
+        user: res.data.user,
+        isAuthenticated: true
+      })
+    } catch {
+      set({
+        user: null,
+        isAuthenticated: false
+      })
+    }
   },
-  clearSession: () => {
-    removeToken()
-    set({ user: null, accessToken: "" })
+
+  logout: async () => {
+    await api.post("/auth/logout")
+
+    set({
+      user: null,
+      isAuthenticated: false
+    })
   }
 }))

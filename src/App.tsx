@@ -8,7 +8,7 @@ import WishlistPage from "./pages/wishlist/WishlistPage"
 import ProfilePage from "./pages/profile/ProfilePage"
 import LoginPage from "./pages/auth/LoginPage"
 import RegisterPage from "./pages/auth/RegisterPage"
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage"
+
 import CheckoutPage from "./pages/checkout/CheckoutPage"
 import OrdersPage from "./pages/orders/OrdersPage"
 
@@ -44,7 +44,7 @@ export default function App(){
 
           <Route path="/register" element={<RegisterPage />} />
 
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          
 
         </Routes>
 
