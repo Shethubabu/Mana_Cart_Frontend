@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSession } from "@/hooks/useSession"
 import { getFieldErrors, registerSchema } from "@/lib/validation"
@@ -6,7 +6,7 @@ import { pushToast } from "@/store/toastStore"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const { register, isRegistering } = useSession()
+  const { user, register, isRegistering, isLoadingUser } = useSession()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -16,6 +16,20 @@ export default function RegisterPage() {
     email?: string
     password?: string
   }>({})
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true })
+    }
+  }, [navigate, user])
+
+  if (isLoadingUser && !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-10 text-sm text-slate-500">
+        Checking your session...
+      </div>
+    )
+  }
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

@@ -14,7 +14,7 @@ export default function ProductPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const [imageIndex, setImageIndex] = useState(0)
-  const { user } = useSession()
+  const { user, isLoadingUser } = useSession()
   const { addToCart } = useCart()
   const { data, isLoading } = useProduct(id || "")
   const { data: products } = useProducts("", "")
@@ -41,6 +41,15 @@ export default function ProductPage() {
       .slice(0, 4) || []
 
   const handleAddToCart = async () => {
+    if (isLoadingUser) {
+      pushToast({
+        tone: "info",
+        title: "Checking your session",
+        description: "Please wait a moment and try again."
+      })
+      return
+    }
+
     if (!user) {
       pushToast({
         tone: "info",

@@ -8,9 +8,17 @@ import { pushToast } from "@/store/toastStore"
 
 export default function CartPage() {
   const navigate = useNavigate()
-  const { user } = useSession()
+  const { user, isLoadingUser } = useSession()
   const { items, isLoading, updateCart, removeItem } = useCart()
   const [pendingItemId, setPendingItemId] = useState<number | null>(null)
+
+  if (isLoadingUser && !user) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-slate-500">
+        Checking your session...
+      </div>
+    )
+  }
 
   if (!user) {
     return (

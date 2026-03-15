@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { AxiosError } from "axios"
 import { useEffect } from "react"
 import { api } from "@/api/client"
 import { useAuthStore } from "@/store/authStore"
@@ -25,6 +26,7 @@ export const useSession = () => {
       const response = await api.get("/auth/me")
       return response.data.user
     },
+    initialData: user,
     retry: false,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -36,6 +38,14 @@ export const useSession = () => {
       setUser(meQuery.data)
     }
   }, [meQuery.data, setUser])
+
+  useEffect(() => {
+    const status = (meQuery.error as AxiosError | null)?.response?.status
+
+    if (status === 401) {
+      setUser(null)
+    }
+  }, [meQuery.error, setUser])
 
   const loginMutation = useMutation({
     mutationFn: async (payload: LoginInput) => {

@@ -16,7 +16,8 @@ export const useProduct = (id: string) => {
 
     },
 
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    staleTime: 60 * 1000
 
   })
 

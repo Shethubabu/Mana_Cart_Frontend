@@ -44,6 +44,8 @@ export default function App(){
 
           <Route path="/register" element={<RegisterPage />} />
 
+          <Route path="*" element={<Home />} />
+
           
 
         </Routes>

@@ -18,7 +18,7 @@ export default function ProductCard({
 }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
-  const { user } = useSession()
+  const { user, isLoadingUser } = useSession()
   const { addToCart } = useCart()
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
   const wishlist = useWishlistStore((state) => state.items)
@@ -45,6 +45,15 @@ export default function ProductCard({
   }
 
   const handleAddToCart = async () => {
+    if (isLoadingUser) {
+      pushToast({
+        tone: "info",
+        title: "Checking your session",
+        description: "Please wait a moment and try again."
+      })
+      return
+    }
+
     if (!user) {
       pushToast({
         tone: "info",
