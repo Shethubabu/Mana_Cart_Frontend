@@ -9,7 +9,11 @@ export const useHome = () => {
     queryFn: async () => {
       const res = await api.get("/home")
       return res.data
-    }
+    },
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false
   })
 
 }
