@@ -1,12 +1,39 @@
 import { PackageCheck } from "lucide-react"
 import { Link, useSearchParams } from "react-router-dom"
+import { useSession } from "@/hooks/useSession"
 import { useOrders } from "@/hooks/useOrders"
 import { formatCompactDate, formatCurrency, getProductImage } from "@/lib/format"
 
 export default function OrdersPage() {
   const [searchParams] = useSearchParams()
+  const { user, isLoadingUser } = useSession()
   const { orders, isLoading } = useOrders()
   const paymentSuccess = searchParams.get("payment") === "success"
+
+  if (isLoadingUser && !user) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-slate-500">
+        Checking your session...
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+        <h1 className="text-3xl font-black text-slate-950">Login to view your orders</h1>
+        <p className="mt-3 text-sm text-slate-600">
+          Your purchase history will appear here after you sign in.
+        </p>
+        <Link
+          to="/login"
+          className="mt-6 inline-flex rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white"
+        >
+          Go to login
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">

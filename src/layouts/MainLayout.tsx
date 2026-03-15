@@ -18,7 +18,7 @@ export default function MainLayout({
   return (
     <div className="min-h-screen bg-[#fbfbfe] text-slate-950">
       {!isAuthPage && <AnnouncementBar />}
-      <Navbar />
+      {!isAuthPage && <Navbar />}
       <main className="min-h-[calc(100vh-220px)]">{children}</main>
       {!isAuthPage && <Footer />}
       <Toaster />

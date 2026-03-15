@@ -53,7 +53,8 @@ export const useAddresses = () => {
       const res = await api.get("/addresses")
       return (res.data as AddressApiRecord[]).map(normalizeAddress)
     },
-    enabled: Boolean(user)
+    enabled: Boolean(user),
+    staleTime: 60 * 1000
   })
 
   const createAddress = useMutation({

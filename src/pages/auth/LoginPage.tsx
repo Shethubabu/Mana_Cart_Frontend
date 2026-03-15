@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useSession } from "@/hooks/useSession"
 import { getFieldErrors, loginSchema } from "@/lib/validation"
@@ -6,7 +6,7 @@ import { pushToast } from "@/store/toastStore"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, isLoggingIn } = useSession()
+  const { user, login, isLoggingIn, isLoadingUser } = useSession()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -14,6 +14,20 @@ export default function LoginPage() {
     email?: string
     password?: string
   }>({})
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true })
+    }
+  }, [navigate, user])
+
+  if (isLoadingUser && !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-10 text-sm text-slate-500">
+        Checking your session...
+      </div>
+    )
+  }
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

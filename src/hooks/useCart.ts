@@ -13,7 +13,8 @@ export const useCart = () => {
       const response = await api.get("/cart")
       return response.data
     },
-    enabled: Boolean(user)
+    enabled: Boolean(user),
+    staleTime: 60 * 1000
   })
 
   const invalidate = () =>

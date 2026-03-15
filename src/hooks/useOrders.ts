@@ -51,7 +51,8 @@ export const useOrders = () => {
       const response = await api.get("/orders")
       return response.data
     },
-    enabled: Boolean(user)
+    enabled: Boolean(user),
+    staleTime: 60 * 1000
   })
 
   const checkout = useMutation({
