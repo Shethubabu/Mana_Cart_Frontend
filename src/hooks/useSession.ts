@@ -26,7 +26,6 @@ export const useSession = () => {
       const response = await api.get("/auth/me")
       return response.data.user
     },
-    initialData: user,
     retry: false,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
