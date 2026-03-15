@@ -20,12 +20,14 @@ export const useSession = () => {
   const queryClient = useQueryClient()
   const { user, setUser } = useAuthStore()
 
+  const fetchSessionUser = async () => {
+    const response = await api.get("/auth/me")
+    return response.data.user as User
+  }
+
   const meQuery = useQuery<User | null>({
     queryKey: ["me"],
-    queryFn: async () => {
-      const response = await api.get("/auth/me")
-      return response.data.user
-    },
+    queryFn: fetchSessionUser,
     retry: false,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -48,8 +50,9 @@ export const useSession = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: LoginInput) => {
-      const response = await api.post("/auth/login", payload)
-      return response.data
+      await api.post("/auth/login", payload)
+      const sessionUser = await fetchSessionUser()
+      return { user: sessionUser }
     },
 
     onSuccess: (data) => {
@@ -60,8 +63,9 @@ export const useSession = () => {
 
   const registerMutation = useMutation({
     mutationFn: async (payload: RegisterInput) => {
-      const response = await api.post("/auth/register", payload)
-      return response.data
+      await api.post("/auth/register", payload)
+      const sessionUser = await fetchSessionUser()
+      return { user: sessionUser }
     },
 
     onSuccess: (data) => {
