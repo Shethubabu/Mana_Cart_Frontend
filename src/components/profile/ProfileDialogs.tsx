@@ -36,7 +36,7 @@ export default function ProfileDialogs({
     type: "Home"
   }
 
-  /* ---------------- PROFILE SAVE ---------------- */
+  
 
   const saveProfile = () => {
 
@@ -51,7 +51,7 @@ export default function ProfileDialogs({
     setProfileDialogOpen(false)
   }
 
-  /* ---------------- ADDRESS SAVE ---------------- */
+
 
   const saveAddress = async (e: React.FormEvent) => {
 
@@ -105,7 +105,7 @@ export default function ProfileDialogs({
 
   return (
     <>
-      {/* ---------------- PROFILE DIALOG ---------------- */}
+     
 
       <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
 
@@ -155,7 +155,6 @@ export default function ProfileDialogs({
 
       </Dialog>
 
-      {/* ---------------- ADDRESS DIALOG ---------------- */}
 
       <Dialog open={addressDialogOpen} onOpenChange={setAddressDialogOpen}>
 
@@ -172,7 +171,7 @@ export default function ProfileDialogs({
             className="grid gap-4 md:grid-cols-2"
           >
 
-            {/* NAME */}
+           
 
             <Input
               placeholder="Full name"
@@ -182,7 +181,6 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* PHONE */}
 
             <Input
               placeholder="Phone"
@@ -195,7 +193,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* PINCODE */}
+          
 
             <Input
               placeholder="Pincode"
@@ -208,7 +206,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* LOCALITY */}
+           
 
             <Input
               placeholder="Locality"
@@ -218,7 +216,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* CITY */}
+            
 
             <Input
               placeholder="City"
@@ -228,7 +226,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* STATE */}
+         
 
             <Input
               placeholder="State"
@@ -238,7 +236,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* ADDRESS LINE */}
+           
 
             <Input
               className="md:col-span-2"
@@ -252,7 +250,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* LANDMARK */}
+           
 
             <Input
               placeholder="Landmark"
@@ -265,7 +263,7 @@ export default function ProfileDialogs({
               }
             />
 
-            {/* TYPE */}
+          
 
             <Input
               placeholder="Type (Home / Work)"
