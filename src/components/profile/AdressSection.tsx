@@ -27,7 +27,7 @@ export default function AddressSection({
   return (
     <main className="space-y-6">
 
-      {/* Account Overview */}
+      
 
       <section className="overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#fff3f6_0%,#ffffff_55%,#fff8e8_100%)] p-6 lg:p-8">
 
@@ -73,7 +73,7 @@ export default function AddressSection({
       </section>
 
 
-      {/* Personal Details */}
+    
 
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
 
