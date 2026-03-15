@@ -14,10 +14,31 @@ type CheckoutResponse = {
   keyId?: string
   razorpayKey?: string
   razorpayKeyId?: string
+
   orderId?: string
+  order_id?: string
   razorpayOrderId?: string
+
   amount?: number
   currency?: string
+
+  name?: string
+  description?: string
+  image?: string
+
+  prefill?: {
+    name?: string
+    email?: string
+    contact?: string
+  }
+
+  notes?: Record<string, string>
+
+  order?: {
+    id?: string
+    amount?: number
+    currency?: string
+  }
 }
 
 export const useOrders = () => {
