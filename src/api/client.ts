@@ -4,6 +4,12 @@ import { useAuthStore } from "@/store/authStore"
 const baseURL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
 
+const isAuthRoute = (pathname: string) =>
+  pathname === "/login" || pathname === "/register"
+
+const isAuthRequest = (url?: string) =>
+  Boolean(url && url.includes("/auth/"))
+
 export const api = axios.create({
   baseURL,
   withCredentials: true
@@ -26,6 +32,10 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    if (isAuthRequest(originalRequest.url)) {
+      return Promise.reject(error)
+    }
+
     originalRequest._retry = true
 
     if (!refreshPromise) {
@@ -40,7 +50,11 @@ api.interceptors.response.use(
           useAuthStore.getState().setUser(null)
 
           if (typeof window !== "undefined") {
-            window.location.href = "/login"
+            const { pathname } = window.location
+
+            if (!isAuthRoute(pathname)) {
+              window.location.replace("/login")
+            }
           }
 
           throw refreshError
