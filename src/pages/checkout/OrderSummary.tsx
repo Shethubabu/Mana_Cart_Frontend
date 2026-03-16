@@ -24,7 +24,9 @@ interface Address {
 interface CartItem {
   id: number
   quantity: number
+  productId?: number
   product: {
+    id?: number
     title: string
     price: number
   }
@@ -90,7 +92,11 @@ export default function OrderSummary({
       const response = await checkout({
         addressId: selectedAddress.id,
         paymentMethod,
-        upiId: paymentMethod === "upi" ? upiId : undefined
+        upiId: paymentMethod === "upi" ? upiId : undefined,
+        items: items.map((item) => ({
+          productId: item.productId ?? item.product.id ?? item.id,
+          quantity: item.quantity
+        }))
       })
 
       if (paymentMethod === "razorpay") {
@@ -100,7 +106,12 @@ export default function OrderSummary({
     throw new Error("Razorpay SDK not loaded")
   }
 
-  const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID
+  const razorpayKey =
+    response.key ||
+    response.keyId ||
+    response.razorpayKey ||
+    response.razorpayKeyId ||
+    import.meta.env.VITE_RAZORPAY_KEY_ID
 
   if (!razorpayKey) {
     throw new Error(
@@ -108,13 +119,26 @@ export default function OrderSummary({
     )
   }
 
+  const razorpayOrderId =
+    response.orderId ||
+    response.order_id ||
+    response.razorpayOrderId ||
+    response.order?.id
+
+  if (!razorpayOrderId) {
+    throw new Error("Razorpay order was not created")
+  }
+
   const razorpay = new window.Razorpay({
     key: razorpayKey,
-    order_id: response.orderId,
-    amount: response.amount,
-    currency: response.currency || "INR",
-    name: "ManaCart",
-    description: "Complete your order payment",
+    order_id: razorpayOrderId,
+    amount: response.amount || response.order?.amount || total * 100,
+    currency: response.currency || response.order?.currency || "INR",
+    name: response.name || "ManaCart",
+    description: response.description || "Complete your order payment",
+    image: response.image,
+    prefill: response.prefill,
+    notes: response.notes,
     theme: {
       color: "#ff3f6c"
     },

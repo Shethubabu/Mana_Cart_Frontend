@@ -7,6 +7,10 @@ export type CheckoutPayload = {
   paymentMethod: "cod" | "upi" | "razorpay"
   addressId?: number
   upiId?: string
+  items?: Array<{
+    productId: number
+    quantity: number
+  }>
 }
 
 type CheckoutResponse = {
@@ -57,9 +61,21 @@ export const useOrders = () => {
 
   const checkout = useMutation({
     mutationFn: async (payload: CheckoutPayload) => {
+      const requestBody = {
+        paymentMethod: payload.paymentMethod,
+        payment_method: payload.paymentMethod,
+        method: payload.paymentMethod,
+        addressId: payload.addressId,
+        address_id: payload.addressId,
+        upiId: payload.upiId,
+        upi_id: payload.upiId,
+        items: payload.items,
+        cartItems: payload.items
+      }
+
       const response = await api.post<CheckoutResponse>(
         "/orders/checkout",
-        payload
+        requestBody
       )
       return response.data
     },
