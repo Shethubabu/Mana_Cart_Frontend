@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { AxiosError } from "axios"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
@@ -135,9 +136,20 @@ export default function OrderSummary({
 
       navigate("/orders")
     } catch (error) {
+      const checkoutError = error as AxiosError<{ message?: string }>
+      const status = checkoutError.response?.status
+      const description =
+        checkoutError.response?.data?.message ||
+        (status === 401
+          ? "Your session expired. Please sign in again and retry."
+          : status === 502
+            ? "The checkout service is temporarily unavailable. Please try again in a moment."
+            : "Please try again.")
+
       pushToast({
         tone: "error",
-        title: "Checkout failed"
+        title: "Checkout failed",
+        description
       })
     }
   }

@@ -21,8 +21,18 @@ export const useSession = () => {
   const { user, setUser } = useAuthStore()
 
   const fetchSessionUser = async () => {
-    const response = await api.get("/auth/me")
-    return response.data.user as User
+    try {
+      const response = await api.get("/auth/me")
+      return response.data.user as User
+    } catch (error) {
+      const status = (error as AxiosError | null)?.response?.status
+
+      if (status === 401) {
+        return null
+      }
+
+      throw error
+    }
   }
 
   const meQuery = useQuery<User | null>({
@@ -35,18 +45,10 @@ export const useSession = () => {
   })
 
   useEffect(() => {
-    if (meQuery.data) {
-      setUser(meQuery.data)
+    if (meQuery.isSuccess) {
+      setUser(meQuery.data ?? null)
     }
-  }, [meQuery.data, setUser])
-
-  useEffect(() => {
-    const status = (meQuery.error as AxiosError | null)?.response?.status
-
-    if (status === 401) {
-      setUser(null)
-    }
-  }, [meQuery.error, setUser])
+  }, [meQuery.data, meQuery.isSuccess, setUser])
 
   const loginMutation = useMutation({
     mutationFn: async (payload: LoginInput) => {
