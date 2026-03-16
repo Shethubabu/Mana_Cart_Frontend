@@ -27,8 +27,8 @@ export default function HeroCarousel() {
   }
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[1.8fr_1fr] lg:px-6">
-      <div className="relative min-h-[540px] overflow-hidden rounded-[2rem] bg-[#f7d8df]">
+    <section className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:gap-6 lg:grid-cols-[1.8fr_1fr] lg:px-6">
+      <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] bg-[#f7d8df] sm:min-h-[560px] lg:min-h-[540px]">
         {slides.map((product, slideIndex) => (
           <div
             key={product.id}
@@ -36,17 +36,17 @@ export default function HeroCarousel() {
               slideIndex === index ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="grid h-full items-center gap-8 p-8 md:grid-cols-2 md:p-12">
-              <div>
+            <div className="grid h-full items-center gap-6 p-6 sm:p-8 md:grid-cols-2 md:gap-8 md:p-12">
+              <div className="order-2 md:order-1">
                 <p className="text-xs font-black text-[#ff3f6c]">Featured pick</p>
-                <h1 className="mt-4 max-w-md text-4xl font-black leading-none tracking-tight text-slate-950 md:text-6xl">
+                <h1 className="mt-4 max-w-md text-3xl font-black leading-none tracking-tight text-slate-950 sm:text-4xl md:text-5xl lg:text-6xl">
                   {product.title}
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-6 text-slate-700 md:text-base">
                   Discover better prices, faster delivery, and smoother checkout
                   across electronics, home, beauty, fashion, and everyday needs.
                 </p>
-                <div className="mt-8 flex items-center gap-5">
+                <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
                   <Link
                     to={`/product/${product.id}`}
                     className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white"
@@ -60,19 +60,19 @@ export default function HeroCarousel() {
                 </div>
               </div>
 
-              <div className="relative">
+              <div className="relative order-1 md:order-2">
                 <div className="absolute inset-6 rounded-full bg-white/45 blur-3xl" />
                 <img
                   src={getProductImage(product)}
                   alt={product.title}
-                  className="relative z-10 mx-auto h-[420px] w-full object-contain drop-shadow-[0_24px_45px_rgba(15,23,42,0.22)]"
+                  className="relative z-10 mx-auto h-[220px] w-full object-contain drop-shadow-[0_24px_45px_rgba(15,23,42,0.22)] sm:h-[280px] md:h-[360px] lg:h-[420px]"
                 />
               </div>
             </div>
           </div>
         ))}
 
-        <div className="absolute bottom-6 left-8 flex gap-2">
+        <div className="absolute bottom-6 left-6 flex gap-2 sm:left-8">
           {slides.map((product, slideIndex) => (
             <button
               key={product.id}
@@ -91,12 +91,12 @@ export default function HeroCarousel() {
           <Link
             key={product.id}
             to={`/product/${product.id}`}
-            className={`overflow-hidden rounded-[2rem] p-6 ${
+            className={`overflow-hidden rounded-[2rem] p-5 sm:p-6 ${
               cardIndex === 0 ? "bg-[#d4f3ea]" : "bg-[#dfe7ff]"
             }`}
           >
             <p className="text-xs font-black text-slate-700">Fresh arrival</p>
-            <h2 className="mt-3 text-2xl font-black leading-tight tracking-tight text-slate-950">
+            <h2 className="mt-3 text-xl font-black leading-tight tracking-tight text-slate-950 sm:text-2xl">
               {product.title}
             </h2>
             <p className="mt-2 text-sm text-slate-700">
@@ -105,7 +105,7 @@ export default function HeroCarousel() {
             <img
               src={getProductImage(product)}
               alt={product.title}
-              className="mt-4 h-52 w-full object-contain"
+              className="mt-4 h-40 w-full object-contain sm:h-52"
             />
           </Link>
         ))}

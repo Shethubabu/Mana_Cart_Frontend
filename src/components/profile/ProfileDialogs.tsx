@@ -158,9 +158,9 @@ export default function ProfileDialogs({
 
       <Dialog open={addressDialogOpen} onOpenChange={setAddressDialogOpen}>
 
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden p-0">
 
-          <DialogHeader>
+          <DialogHeader className="px-4 pt-4 md:px-6 md:pt-6">
             <DialogTitle>
               {addressForm.id ? "Edit Address" : "Add Address"}
             </DialogTitle>
@@ -168,7 +168,7 @@ export default function ProfileDialogs({
 
           <form
             onSubmit={saveAddress}
-            className="grid gap-4 md:grid-cols-2"
+            className="grid gap-4 overflow-y-auto px-4 pb-4 md:grid-cols-2 md:px-6 md:pb-6"
           >
 
            
@@ -276,16 +276,15 @@ export default function ProfileDialogs({
               }
             />
 
-            <DialogFooter className="col-span-2">
-
+            <div className="col-span-1 border-t border-slate-200 pt-4 md:col-span-2">
               <Button
                 type="submit"
                 disabled={isSavingAddress}
+                className="w-full sm:w-auto"
               >
                 {isSavingAddress ? "Saving..." : "Save address"}
               </Button>
-
-            </DialogFooter>
+            </div>
 
           </form>
 
