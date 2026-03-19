@@ -46,7 +46,10 @@ export const profileSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(phoneRegex, "Enter a valid 10-digit mobile number.")
+    .refine(
+      (value) => value === "" || phoneRegex.test(value),
+      "Enter a valid 10-digit mobile number."
+    )
 })
 
 export const addressSchema = z.object({

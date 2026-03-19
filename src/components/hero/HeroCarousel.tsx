@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useHome } from "@/hooks/useHome"
 import { formatCurrency, getProductImage } from "@/lib/format"
@@ -8,7 +8,7 @@ export default function HeroCarousel() {
   const { data } = useHome()
   const [index, setIndex] = useState(0)
 
-  const slides = data?.featuredProducts?.slice(0, 4) || []
+  const slides = data?.featuredProducts || []
 
   useEffect(() => {
     if (slides.length <= 1) {
@@ -26,6 +26,14 @@ export default function HeroCarousel() {
     return null
   }
 
+  const showPrev = () => {
+    setIndex((current) => (current - 1 + slides.length) % slides.length)
+  }
+
+  const showNext = () => {
+    setIndex((current) => (current + 1) % slides.length)
+  }
+
   return (
     <section className="mx-auto grid max-w-7xl gap-4 px-4 py-6 sm:gap-6 lg:grid-cols-[1.8fr_1fr] lg:px-6">
       <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] bg-[#f7d8df] sm:min-h-[560px] lg:min-h-[540px]">
@@ -33,16 +41,18 @@ export default function HeroCarousel() {
           <div
             key={product.id}
             className={`absolute inset-0 transition-opacity duration-700 ${
-              slideIndex === index ? "opacity-100" : "opacity-0"
+              slideIndex === index
+                ? "pointer-events-auto opacity-100"
+                : "pointer-events-none opacity-0"
             }`}
           >
-            <div className="grid h-full items-center gap-6 p-6 sm:p-8 md:grid-cols-2 md:gap-8 md:p-12">
-              <div className="order-2 md:order-1">
+            <div className="grid h-full grid-rows-[220px_1fr] gap-4 p-6 sm:grid-rows-[280px_1fr] sm:gap-6 sm:p-8 md:grid-cols-2 md:grid-rows-1 md:items-center md:gap-8 md:p-12">
+              <div className="order-2 flex min-h-0 flex-col justify-center md:order-1">
                 <p className="text-xs font-black text-[#ff3f6c]">Featured pick</p>
-                <h1 className="mt-4 max-w-md text-3xl font-black leading-none tracking-tight text-slate-950 sm:text-4xl md:text-5xl lg:text-6xl">
+                <h1 className="mt-4 line-clamp-2 min-h-[4rem] max-w-md text-3xl font-black leading-none tracking-tight text-slate-950 sm:min-h-[5rem] sm:text-4xl md:min-h-[7.5rem] md:text-5xl lg:text-6xl">
                   {product.title}
                 </h1>
-                <p className="mt-4 max-w-md text-sm leading-6 text-slate-700 md:text-base">
+                <p className="mt-4 min-h-[4.5rem] max-w-md text-sm leading-6 text-slate-700 md:min-h-[5rem] md:text-base">
                   Discover better prices, faster delivery, and smoother checkout
                   across electronics, home, beauty, fashion, and everyday needs.
                 </p>
@@ -60,30 +70,38 @@ export default function HeroCarousel() {
                 </div>
               </div>
 
-              <div className="relative order-1 md:order-2">
+              <div className="relative order-1 flex h-full items-center justify-center md:order-2">
                 <div className="absolute inset-6 rounded-full bg-white/45 blur-3xl" />
                 <img
                   src={getProductImage(product)}
                   alt={product.title}
-                  className="relative z-10 mx-auto h-[220px] w-full object-contain drop-shadow-[0_24px_45px_rgba(15,23,42,0.22)] sm:h-[280px] md:h-[360px] lg:h-[420px]"
+                  className="relative z-10 mx-auto h-[200px] w-full object-contain drop-shadow-[0_24px_45px_rgba(15,23,42,0.22)] sm:h-[240px] md:h-[360px] lg:h-[420px]"
                 />
               </div>
             </div>
           </div>
         ))}
 
-        <div className="absolute bottom-6 left-6 flex gap-2 sm:left-8">
-          {slides.map((product, slideIndex) => (
+        {slides.length > 1 ? (
+          <>
             <button
-              key={product.id}
               type="button"
-              onClick={() => setIndex(slideIndex)}
-              className={`h-2.5 rounded-full transition ${
-                slideIndex === index ? "w-8 bg-slate-950" : "w-2.5 bg-white/70"
-              }`}
-            />
-          ))}
-        </div>
+              onClick={showPrev}
+              aria-label="Previous featured product"
+              className="absolute bottom-4 left-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/85 text-slate-950 shadow-lg backdrop-blur transition duration-300 hover:-translate-x-1 hover:scale-105 hover:bg-white active:scale-95 sm:bottom-6 sm:left-6 sm:h-12 sm:w-12"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={showNext}
+              aria-label="Next featured product"
+              className="absolute bottom-4 right-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/85 text-slate-950 shadow-lg backdrop-blur transition duration-300 hover:translate-x-1 hover:scale-105 hover:bg-white active:scale-95 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"
+            >
+              <ArrowRight size={18} />
+            </button>
+          </>
+        ) : null}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">

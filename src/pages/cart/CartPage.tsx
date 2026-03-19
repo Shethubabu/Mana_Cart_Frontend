@@ -3,7 +3,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "@/hooks/useCart"
 import { useSession } from "@/hooks/useSession"
-import { formatCurrency, getProductImage } from "@/lib/format"
+import { formatCurrency, getCategoryName, getProductImage } from "@/lib/format"
 import { pushToast } from "@/store/toastStore"
 
 export default function CartPage() {
@@ -38,18 +38,11 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce(
-  (sum, item) => sum + item.product.price * item.quantity,
-  0
-)
-
-const delivery =
-  items.length === 0
-    ? 0
-    : subtotal > 100
-    ? 0
-    : 1
-
-const total = subtotal + delivery
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  )
+  const delivery = 0
+  const total = subtotal
 
   const handleQuantityChange = async (cartId: number, quantity: number) => {
     try {
@@ -124,7 +117,7 @@ const total = subtotal + delivery
                       {item.product.title}
                     </h2>
                     <p className="mt-2 text-sm text-slate-500">
-                      {item.product.category?.name || "General"}
+                      {getCategoryName(item.product)}
                     </p>
                     <p className="mt-4 text-xl font-black text-slate-950">
                       {formatCurrency(item.product.price)}

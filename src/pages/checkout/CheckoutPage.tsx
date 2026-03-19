@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   const { user, isLoadingUser } = useSession()
   const { items } = useCart()
   const { addresses, isLoading } = useAddresses()
-  const { checkout, isCheckingOut } = useOrders()
+  const { checkout, isCheckingOut, confirmPayment, isConfirmingPayment } = useOrders()
 
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "upi" | "razorpay">(
     "cod"
@@ -75,7 +75,8 @@ export default function CheckoutPage() {
         paymentMethod={paymentMethod}
         upiId={upiId}
         checkout={checkout}
-        isCheckingOut={isCheckingOut}
+        confirmPayment={confirmPayment}
+        isCheckingOut={isCheckingOut || isConfirmingPayment}
       />
 
     </div>

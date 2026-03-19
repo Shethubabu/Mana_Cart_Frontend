@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import AnnouncementBar from "@/components/navbar/AnnouncementBar"
 import Navbar from "@/components/navbar/Navbar"
@@ -14,6 +15,14 @@ export default function MainLayout({
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/forgot-password"
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto"
+    })
+  }, [location.pathname, location.search])
 
   return (
     <div className="min-h-screen bg-[#fbfbfe] text-slate-950">

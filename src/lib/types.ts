@@ -22,6 +22,7 @@ export interface Product {
   title: string
   description: string
   price: number
+  categoryId?: number
   discountPercentage?: number | null
   rating?: number | null
   stock: number
@@ -74,6 +75,8 @@ export interface User {
   id: number
   name: string
   email: string
+  phone?: string
+  createdAt?: string
 }
 
 export interface AuthResponse {

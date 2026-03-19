@@ -7,6 +7,10 @@ export type CheckoutPayload = {
   paymentMethod: "cod" | "upi" | "razorpay"
   addressId?: number
   upiId?: string
+  items?: Array<{
+    productId: number
+    quantity: number
+  }>
 }
 
 type CheckoutResponse = {
@@ -41,9 +45,26 @@ type CheckoutResponse = {
   }
 }
 
+type ConfirmPaymentPayload = {
+  razorpayOrderId: string
+  razorpayPaymentId: string
+  razorpaySignature: string
+}
+
 export const useOrders = () => {
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
+  const syncPurchaseState = async () => {
+    queryClient.setQueryData(["cart", user?.id], [])
+
+    await queryClient.invalidateQueries({
+      queryKey: ["orders", user?.id]
+    })
+
+    await queryClient.invalidateQueries({
+      queryKey: ["cart", user?.id]
+    })
+  }
 
   const ordersQuery = useQuery<Order[]>({
     queryKey: ["orders", user?.id],
@@ -57,9 +78,15 @@ export const useOrders = () => {
 
   const checkout = useMutation({
     mutationFn: async (payload: CheckoutPayload) => {
+      const requestBody = {
+        paymentMethod: payload.paymentMethod,
+        addressId: payload.addressId,
+        upiId: payload.upiId
+      }
+
       const response = await api.post<CheckoutResponse>(
         "/orders/checkout",
-        payload
+        requestBody
       )
       return response.data
     },
@@ -67,13 +94,22 @@ export const useOrders = () => {
     onSuccess: async (_, variables) => {
       if (variables.paymentMethod === "razorpay") return
 
-      await queryClient.invalidateQueries({
-        queryKey: ["orders", user?.id]
-      })
+      await syncPurchaseState()
+    }
+  })
 
-      await queryClient.invalidateQueries({
-        queryKey: ["cart", user?.id]
-      })
+  const confirmPayment = useMutation({
+    mutationFn: async (payload: ConfirmPaymentPayload) => {
+      const response = await api.post<Order>(
+        "/orders/confirm-payment",
+        payload
+      )
+
+      return response.data
+    },
+
+    onSuccess: async () => {
+      await syncPurchaseState()
     }
   })
 
@@ -82,6 +118,9 @@ export const useOrders = () => {
     isLoading: ordersQuery.isLoading,
 
     checkout: checkout.mutateAsync,
-    isCheckingOut: checkout.isPending
+    isCheckingOut: checkout.isPending,
+
+    confirmPayment: confirmPayment.mutateAsync,
+    isConfirmingPayment: confirmPayment.isPending
   }
 }

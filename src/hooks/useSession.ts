@@ -16,6 +16,53 @@ interface LoginInput {
   password: string
 }
 
+interface ProfileInput {
+  name: string
+  email: string
+  phone: string
+}
+
+const profileStorageKey = (userId: number) => `manacart-profile:${userId}`
+
+const readStoredProfile = (userId: number) => {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  try {
+    const value = window.localStorage.getItem(profileStorageKey(userId))
+    return value ? (JSON.parse(value) as Partial<User>) : null
+  } catch {
+    return null
+  }
+}
+
+const writeStoredProfile = (user: ProfileInput & { id: number }) => {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  window.localStorage.setItem(
+    profileStorageKey(user.id),
+    JSON.stringify({
+      name: user.name,
+      email: user.email,
+      phone: user.phone
+    })
+  )
+}
+
+const mergeStoredProfile = (user: User | null) => {
+  if (!user) {
+    return null
+  }
+
+  return {
+    ...user,
+    ...readStoredProfile(user.id)
+  }
+}
+
 export const useSession = () => {
   const queryClient = useQueryClient()
   const { user, setUser } = useAuthStore()
@@ -23,7 +70,7 @@ export const useSession = () => {
   const fetchSessionUser = async () => {
     try {
       const response = await api.get("/auth/me")
-      return response.data.user as User
+      return mergeStoredProfile(response.data.user as User)
     } catch (error) {
       const status = (error as AxiosError | null)?.response?.status
 
@@ -91,6 +138,47 @@ export const useSession = () => {
     }
   })
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: ProfileInput) => {
+      const currentUser = (queryClient.getQueryData(["me"]) as User | null) || user
+
+      if (!currentUser) {
+        throw new Error("No active session")
+      }
+
+      let nextUser: User = {
+        ...currentUser,
+        ...payload
+      }
+
+      try {
+        const response = await api.patch("/auth/me", payload)
+        nextUser = mergeStoredProfile({
+          ...(response.data.user as User),
+          phone: payload.phone
+        }) as User
+      } catch (error) {
+        const status = (error as AxiosError | null)?.response?.status
+
+        if (status && ![404, 405].includes(status)) {
+          throw error
+        }
+      }
+
+      writeStoredProfile({
+        id: currentUser.id,
+        ...payload
+      })
+
+      return mergeStoredProfile(nextUser) as User
+    },
+
+    onSuccess: (nextUser) => {
+      setUser(nextUser)
+      queryClient.setQueryData(["me"], nextUser)
+    }
+  })
+
   return {
     user: meQuery.data || user,
     isAuthenticated: Boolean(meQuery.data || user),
@@ -105,6 +193,9 @@ export const useSession = () => {
     registerError: registerMutation.error,
 
     logout: logoutMutation.mutateAsync,
-    isLoggingOut: logoutMutation.isPending
+    isLoggingOut: logoutMutation.isPending,
+
+    updateProfile: updateProfileMutation.mutateAsync,
+    isUpdatingProfile: updateProfileMutation.isPending
   }
 }

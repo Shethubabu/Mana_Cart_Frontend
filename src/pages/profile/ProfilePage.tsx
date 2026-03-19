@@ -4,7 +4,14 @@ import ProfileContent from "@/components/profile/ProfileContent"
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const { user, logout, isLoggingOut, isLoadingUser } = useSession()
+  const {
+    user,
+    logout,
+    isLoggingOut,
+    isLoadingUser,
+    updateProfile,
+    isUpdatingProfile
+  } = useSession()
 
   if (isLoadingUser && !user) {
     return (
@@ -36,6 +43,8 @@ export default function ProfilePage() {
       user={user}
       logout={logout}
       isLoggingOut={isLoggingOut}
+      updateProfile={updateProfile}
+      isUpdatingProfile={isUpdatingProfile}
       navigate={navigate}
     />
   )

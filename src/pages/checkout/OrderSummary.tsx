@@ -1,7 +1,6 @@
 import { useMemo } from "react"
 import { AxiosError } from "axios"
 import { useNavigate } from "react-router-dom"
-import { useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/format"
@@ -24,7 +23,9 @@ interface Address {
 interface CartItem {
   id: number
   quantity: number
+  productId?: number
   product: {
+    id?: number
     title: string
     price: number
   }
@@ -36,7 +37,40 @@ interface Props {
   selectedAddressId: number | null
   paymentMethod: "cod" | "upi" | "razorpay"
   upiId: string
-  checkout: any
+  checkout: (payload: {
+    addressId: number
+    paymentMethod: "cod" | "upi" | "razorpay"
+    upiId?: string
+  }) => Promise<{
+    key?: string
+    keyId?: string
+    razorpayKey?: string
+    razorpayKeyId?: string
+    orderId?: string
+    order_id?: string
+    razorpayOrderId?: string
+    amount?: number
+    currency?: string
+    name?: string
+    description?: string
+    image?: string
+    prefill?: {
+      name?: string
+      email?: string
+      contact?: string
+    }
+    notes?: Record<string, string>
+    order?: {
+      id?: string
+      amount?: number
+      currency?: string
+    }
+  }>
+  confirmPayment: (payload: {
+    razorpayOrderId: string
+    razorpayPaymentId: string
+    razorpaySignature: string
+  }) => Promise<unknown>
   isCheckingOut: boolean
 }
 
@@ -47,10 +81,10 @@ export default function OrderSummary({
   paymentMethod,
   upiId,
   checkout,
+  confirmPayment,
   isCheckingOut
 }: Props) {
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const selectedAddress = addresses.find(
     (address) => address.id === selectedAddressId
@@ -63,8 +97,8 @@ export default function OrderSummary({
     0
   )
 
-  const delivery = subtotal > 100 ? 0 : 1
-  const total = subtotal + delivery
+  const delivery = 0
+  const total = subtotal
 
   const orderSummary = useMemo(
     () =>
@@ -94,40 +128,74 @@ export default function OrderSummary({
       })
 
       if (paymentMethod === "razorpay") {
-  await loadRazorpaySdk()
+        await loadRazorpaySdk()
 
-  if (!window.Razorpay) {
-    throw new Error("Razorpay SDK not loaded")
-  }
+        if (!window.Razorpay) {
+          throw new Error("Razorpay SDK not loaded")
+        }
 
-  const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID
+        const razorpayKey =
+          response.key ||
+          response.keyId ||
+          response.razorpayKey ||
+          response.razorpayKeyId ||
+          import.meta.env.VITE_RAZORPAY_KEY_ID
 
-  if (!razorpayKey) {
-    throw new Error(
-      "Razorpay key is missing. Set VITE_RAZORPAY_KEY_ID in your .env file"
-    )
-  }
+        if (!razorpayKey) {
+          throw new Error(
+            "Razorpay key is missing. Set VITE_RAZORPAY_KEY_ID in your .env file"
+          )
+        }
 
-  const razorpay = new window.Razorpay({
-    key: razorpayKey,
-    order_id: response.orderId,
-    amount: response.amount,
-    currency: response.currency || "INR",
-    name: "ManaCart",
-    description: "Complete your order payment",
-    theme: {
-      color: "#ff3f6c"
-    },
-    handler: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["orders"] })
-      await queryClient.invalidateQueries({ queryKey: ["cart"] })
-      navigate("/orders?payment=success")
-    }
-  })
+        const razorpayOrderId =
+          response.orderId ||
+          response.order_id ||
+          response.razorpayOrderId ||
+          response.order?.id
 
-  razorpay.open()
-  return
-}
+        if (!razorpayOrderId) {
+          throw new Error("Razorpay order was not created")
+        }
+
+        const razorpay = new window.Razorpay({
+          key: razorpayKey,
+          order_id: razorpayOrderId,
+          amount: response.amount || response.order?.amount || total * 100,
+          currency: response.currency || response.order?.currency || "INR",
+          name: response.name || "ManaCart",
+          description: response.description || "Complete your order payment",
+          image: response.image,
+          prefill: response.prefill,
+          notes: response.notes,
+          theme: {
+            color: "#ff3f6c"
+          },
+          handler: async (paymentResult: {
+            razorpay_order_id: string
+            razorpay_payment_id: string
+            razorpay_signature: string
+          }) => {
+            await confirmPayment({
+              razorpayOrderId: paymentResult.razorpay_order_id,
+              razorpayPaymentId: paymentResult.razorpay_payment_id,
+              razorpaySignature: paymentResult.razorpay_signature
+            })
+
+            navigate("/orders?payment=success")
+          },
+          modal: {
+            ondismiss: () => {
+              pushToast({
+                tone: "info",
+                title: "Payment not completed"
+              })
+            }
+          }
+        })
+
+        razorpay.open()
+        return
+      }
 
       pushToast({
         tone: "success",

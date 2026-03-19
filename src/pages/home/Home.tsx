@@ -3,14 +3,14 @@ import Newsletter from "@/components/footer/Newsletter"
 import Categories from "@/components/category/Categories"
 import HeroCarousel from "@/components/hero/HeroCarousel"
 import PromoBanner from "@/components/hero/PromoBanner"
-import FeaturedProducts from "@/components/product/FeaturedProducts"
+import TopRatedProducts from "@/components/product/TopRatedProducts"
 
 export default function Home() {
   return (
     <div className="pb-10">
       <HeroCarousel />
       <Categories />
-      <FeaturedProducts />
+      <TopRatedProducts />
       <PromoBanner />
       <Benefits />
       <Newsletter />

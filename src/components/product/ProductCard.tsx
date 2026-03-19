@@ -5,7 +5,12 @@ import QuickView from "./QuickView"
 import { useWishlistStore } from "@/store/wishlistStore"
 import { useCart } from "@/hooks/useCart"
 import { useSession } from "@/hooks/useSession"
-import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
+import {
+  formatCurrency,
+  getCategoryName,
+  getDiscountedPrice,
+  getProductImage
+} from "@/lib/format"
 import type { Product } from "@/lib/types"
 import { pushToast } from "@/store/toastStore"
 
@@ -117,7 +122,7 @@ export default function ProductCard({
         <div className="space-y-3 p-5">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
             <span className="rounded-full bg-[#eef2ff] px-2.5 py-1 uppercase tracking-[0.16em] text-slate-700">
-              {product.category?.name || "General"}
+              {getCategoryName(product)}
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#edfdf5] px-2.5 py-1 text-[#027a48]">
               <Star size={12} className="fill-current" />

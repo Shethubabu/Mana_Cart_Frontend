@@ -1,7 +1,12 @@
 import { Star } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useHome } from "@/hooks/useHome"
-import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
+import {
+  formatCurrency,
+  getCategoryName,
+  getDiscountedPrice,
+  getProductImage
+} from "@/lib/format"
 
 export default function FeaturedProducts() {
   const { data, isLoading } = useHome()
@@ -55,7 +60,7 @@ export default function FeaturedProducts() {
                   <div className="space-y-3 p-5 text-white">
                     <div className="flex items-center justify-between gap-3 text-xs">
                       <span className="rounded-full border border-[#3f3621] bg-[#191714] px-3 py-1 font-semibold uppercase tracking-[0.16em] text-[#e7c97a]">
-                        {product.category?.name || "General"}
+                        {getCategoryName(product)}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[#f4d58d]">
                         <Star className="size-3 fill-current" />
