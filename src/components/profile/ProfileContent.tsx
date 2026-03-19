@@ -44,6 +44,8 @@ export default function ProfileContent({
   user,
   logout,
   isLoggingOut,
+  updateProfile,
+  isUpdatingProfile,
   navigate
 }: any) {
 
@@ -63,7 +65,7 @@ export default function ProfileContent({
   const [profile, setProfile] = useState<ProfileDetails>({
     name: user.name,
     email: user.email,
-    phone: ""
+    phone: user.phone || ""
   })
 
   const [profileDialogOpen, setProfileDialogOpen] = useState(false)
@@ -122,6 +124,8 @@ export default function ProfileContent({
         setAddressDialogOpen={setAddressDialogOpen}
         addressForm={addressForm}
         setAddressForm={setAddressForm}
+        updateProfile={updateProfile}
+        isSavingProfile={isUpdatingProfile}
         createAddress={createAddress}
         updateAddress={updateAddress}
         isSavingAddress={isCreating || isUpdating}

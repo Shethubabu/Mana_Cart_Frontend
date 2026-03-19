@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Heart, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useProduct } from "@/hooks/useProduct"
@@ -7,7 +7,12 @@ import { useCart } from "@/hooks/useCart"
 import { useSession } from "@/hooks/useSession"
 import { useWishlistStore } from "@/store/wishlistStore"
 import ProductCard from "@/components/product/ProductCard"
-import { formatCurrency, getDiscountedPrice, getProductImage } from "@/lib/format"
+import {
+  formatCurrency,
+  getCategoryName,
+  getDiscountedPrice,
+  getProductImage
+} from "@/lib/format"
 import { pushToast } from "@/store/toastStore"
 
 export default function ProductPage() {
@@ -17,10 +22,31 @@ export default function ProductPage() {
   const { user, isLoadingUser } = useSession()
   const { addToCart } = useCart()
   const { data, isLoading } = useProduct(id || "")
-  const { data: products } = useProducts("", "")
+  const similarCategory = data?.category?.name || ""
+  const { data: products } = useProducts("", similarCategory, {
+    enabled: Boolean(similarCategory),
+    limit: 8
+  })
   const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
   const wishlist = useWishlistStore((state) => state.items)
   const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    setImageIndex(0)
+  }, [id])
+
+  const similarProducts = useMemo(
+    () =>
+      products?.pages
+        .flatMap((page) => page.products)
+        .filter(
+          (product) =>
+            product.id !== data?.id &&
+            product.category?.name === data?.category?.name
+        )
+        .slice(0, 4) || [],
+    [data?.category?.name, data?.id, products?.pages]
+  )
 
   if (isLoading) {
     return <div className="mx-auto max-w-7xl px-4 py-12 lg:px-6">Loading product...</div>
@@ -34,11 +60,7 @@ export default function ProductPage() {
   const currentImage = images[imageIndex]?.url || getProductImage(data)
   const originalPrice = getDiscountedPrice(data)
   const liked = wishlist.some((item) => item.id === data.id)
-  const similarProducts =
-    products?.pages
-      .flatMap((page) => page.products)
-      .filter((product) => product.id !== data.id)
-      .slice(0, 4) || []
+  const reviewCount = data.reviews?.length || 0
 
   const handleAddToCart = async () => {
     if (isLoadingUser) {
@@ -130,7 +152,7 @@ export default function ProductPage() {
 
         <div>
           <p className="text-xs font-black uppercase tracking-[0.28em] text-[#ff3f6c]">
-            {data.category?.name || "General"}
+            {getCategoryName(data)}
           </p>
           <h1 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">
             {data.title}
@@ -141,9 +163,11 @@ export default function ProductPage() {
               <Star size={14} className="fill-current" />
               {data.rating?.toFixed(1) || "4.5"}
             </span>
-            <span className="text-sm text-slate-500">
-              {data.reviews?.length || 0} verified reviews
-            </span>
+            {reviewCount > 0 ? (
+              <span className="text-sm text-slate-500">
+                {reviewCount} verified review{reviewCount === 1 ? "" : "s"}
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-6 flex items-end gap-3">

@@ -1,3 +1,4 @@
+import { useState, type FormEvent } from "react"
 import axios from "axios"
 import { addressSchema, profileSchema, getFieldErrors } from "@/lib/validation"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ import {
   DialogTitle
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { pushToast } from "@/store/toastStore"
 
 export default function ProfileDialogs({
   profile,
@@ -19,12 +21,14 @@ export default function ProfileDialogs({
   setAddressDialogOpen,
   addressForm,
   setAddressForm,
+  updateProfile,
+  isSavingProfile,
   createAddress,
   updateAddress,
   isSavingAddress
 }: any) {
 
-  const emptyAddress = {
+  const emptyAddress = () => ({
     name: "",
     phone: "",
     pincode: "",
@@ -34,26 +38,51 @@ export default function ProfileDialogs({
     addressLine: "",
     landmark: "",
     type: "Home"
-  }
+  })
 
-  
+  const [profileErrors, setProfileErrors] = useState<Partial<Record<string, string>>>({})
+  const [addressErrors, setAddressErrors] = useState<Partial<Record<string, string>>>({})
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
 
     const result = profileSchema.safeParse(profile)
 
     if (!result.success) {
-      console.log(getFieldErrors(result.error))
+      setProfileErrors(getFieldErrors(result.error))
       return
     }
 
-    setProfile(result.data)
-    setProfileDialogOpen(false)
+    setProfileErrors({})
+
+    try {
+      const nextProfile = await updateProfile(result.data)
+      setProfile(nextProfile)
+      setProfileDialogOpen(false)
+      pushToast({
+        tone: "success",
+        title: "Profile updated"
+      })
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        pushToast({
+          tone: "error",
+          title: "Could not update profile",
+          description: error.response?.data?.message || "Please try again."
+        })
+        return
+      }
+
+      pushToast({
+        tone: "error",
+        title: "Could not update profile",
+        description: "Please try again."
+      })
+    }
   }
 
 
 
-  const saveAddress = async (e: React.FormEvent) => {
+  const saveAddress = async (e: FormEvent) => {
 
     e.preventDefault()
 
@@ -72,9 +101,11 @@ export default function ProfileDialogs({
     const result = addressSchema.safeParse(payload)
 
     if (!result.success) {
-      console.log(getFieldErrors(result.error))
+      setAddressErrors(getFieldErrors(result.error))
       return
     }
+
+    setAddressErrors({})
 
     try {
 
@@ -92,14 +123,28 @@ export default function ProfileDialogs({
       }
 
       setAddressDialogOpen(false)
-      setAddressForm(emptyAddress)
+      setAddressForm(emptyAddress())
+      pushToast({
+        tone: "success",
+        title: addressForm.id ? "Address updated" : "Address saved"
+      })
 
     } catch (error) {
 
       if (axios.isAxiosError(error)) {
-        console.error(error.response?.data)
+        pushToast({
+          tone: "error",
+          title: "Could not save address",
+          description: error.response?.data?.message || "Please try again."
+        })
+        return
       }
 
+      pushToast({
+        tone: "error",
+        title: "Could not save address",
+        description: "Please try again."
+      })
     }
   }
 
@@ -124,6 +169,9 @@ export default function ProfileDialogs({
                 setProfile({ ...profile, name: e.target.value })
               }
             />
+            {profileErrors.name ? (
+              <p className="text-sm text-[#ff3f6c]">{profileErrors.name}</p>
+            ) : null}
 
             <Input
               value={profile.email}
@@ -132,21 +180,30 @@ export default function ProfileDialogs({
                 setProfile({ ...profile, email: e.target.value })
               }
             />
+            {profileErrors.email ? (
+              <p className="text-sm text-[#ff3f6c]">{profileErrors.email}</p>
+            ) : null}
 
             <Input
               value={profile.phone}
               placeholder="Phone"
               onChange={(e) =>
-                setProfile({ ...profile, phone: e.target.value })
+                setProfile({
+                  ...profile,
+                  phone: e.target.value.replace(/\D/g, "").slice(0, 10)
+                })
               }
             />
+            {profileErrors.phone ? (
+              <p className="text-sm text-[#ff3f6c]">{profileErrors.phone}</p>
+            ) : null}
 
           </div>
 
           <DialogFooter>
 
-            <Button onClick={saveProfile}>
-              Save changes
+            <Button onClick={saveProfile} disabled={isSavingProfile}>
+              {isSavingProfile ? "Saving..." : "Save changes"}
             </Button>
 
           </DialogFooter>
@@ -180,6 +237,9 @@ export default function ProfileDialogs({
                 setAddressForm({ ...addressForm, name: e.target.value })
               }
             />
+            {addressErrors.name ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.name}</p>
+            ) : null}
 
 
             <Input
@@ -192,6 +252,9 @@ export default function ProfileDialogs({
                 })
               }
             />
+            {addressErrors.phone ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.phone}</p>
+            ) : null}
 
           
 
@@ -205,6 +268,9 @@ export default function ProfileDialogs({
                 })
               }
             />
+            {addressErrors.pincode ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.pincode}</p>
+            ) : null}
 
            
 
@@ -215,6 +281,9 @@ export default function ProfileDialogs({
                 setAddressForm({ ...addressForm, locality: e.target.value })
               }
             />
+            {addressErrors.locality ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.locality}</p>
+            ) : null}
 
             
 
@@ -225,6 +294,9 @@ export default function ProfileDialogs({
                 setAddressForm({ ...addressForm, city: e.target.value })
               }
             />
+            {addressErrors.city ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.city}</p>
+            ) : null}
 
          
 
@@ -235,6 +307,9 @@ export default function ProfileDialogs({
                 setAddressForm({ ...addressForm, state: e.target.value })
               }
             />
+            {addressErrors.state ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.state}</p>
+            ) : null}
 
            
 
@@ -249,6 +324,9 @@ export default function ProfileDialogs({
                 })
               }
             />
+            {addressErrors.addressLine ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.addressLine}</p>
+            ) : null}
 
            
 
@@ -262,6 +340,9 @@ export default function ProfileDialogs({
                 })
               }
             />
+            {addressErrors.landmark ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.landmark}</p>
+            ) : null}
 
           
 
@@ -275,6 +356,9 @@ export default function ProfileDialogs({
                 })
               }
             />
+            {addressErrors.type ? (
+              <p className="text-sm text-[#ff3f6c] md:col-span-2">{addressErrors.type}</p>
+            ) : null}
 
             <div className="col-span-1 border-t border-slate-200 pt-4 md:col-span-2">
               <Button
